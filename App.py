@@ -259,3 +259,7 @@ if 'risk_category' in locals():  # Check if risk_category exists
         st.success(rec)
 
 
+st.subheader("💬 Suggestions / Comments")
+user_comments = st.text_area("Enter your comments or feedback here (optional):")
+
+
