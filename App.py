@@ -47,3 +47,22 @@ with col3:
 bmi = round(weight_kg / ((height_cm/100)**2), 1)
 st.text_input("BMI", value=bmi, disabled=True)
 
+
+st.subheader("❤️ Vital Signs")
+
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    systolic_bp = st.number_input("Systolic BP (mmHg) [90-180]", min_value=90, max_value=180)
+    diastolic_bp = st.number_input("Diastolic BP (mmHg) [60-120]", min_value=60, max_value=120)
+    heart_rate = st.number_input("Heart Rate (bpm) [50-120]", min_value=50, max_value=120)
+
+with col2:
+    spo2 = st.number_input("SpO₂ (%) [90-100]", min_value=90, max_value=100)
+    fasting_blood_sugar = st.number_input("Fasting Blood Sugar (mg/dL) [70-130]", min_value=70, max_value=130)
+    cholesterol = st.number_input("Cholesterol (mg/dL) [100-300]", min_value=100, max_value=300)
+
+with col3:
+    chronic_disease = st.selectbox("Chronic Disease", df['chronic_disease'].unique())
+    if chronic_disease == "Other":
+        chronic_disease_other = st.text_input("Please specify your chronic disease")
