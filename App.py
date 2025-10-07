@@ -7,12 +7,13 @@ st.set_page_config(page_title="Predictive Healthcare for Police Personnel", layo
 st.markdown(
     """
     <div style='text-align: center; padding: 10px; background-color: #1E3A8A; color: white; border-radius: 10px;'>
+        <img src='data:image/png;base64,{}' width='100'>
         <h1>Predictive Healthcare for Police Personnel</h1>
         <p>Get your personalized risk assessment and preventive suggestions</p>
-        <img src="—Pngtree—gold police officer badge_7258551.png" 
-             width="80" alt="Police Logo">
     </div>
-    """,
+    """.format(
+        base64.b64encode(open("—Pngtree—gold police officer badge_7258551.png", "rb").read()).decode()
+    ),
     unsafe_allow_html=True
 )
 
@@ -292,6 +293,16 @@ if 'risk_score' in locals():
     styles.add(ParagraphStyle(name='NormalText', fontSize=12, leading=16, fontName='Helvetica'))
     styles.add(ParagraphStyle(name='BoldText', fontSize=12, leading=16, fontName='Helvetica-Bold'))
     styles.add(ParagraphStyle(name='FooterText', fontSize=10, leading=12, alignment=1, textColor=colors.grey))
+    from reportlab.platypus import Image
+
+    # Add logo at top
+    try:
+     logo = Image("—Pngtree—gold police officer badge_7258551.png", width=60, height=60)
+     logo.hAlign = 'CENTER'
+     elements.append(logo)
+     elements.append(Spacer(1, 8))
+    except Exception as e:
+     st.warning(f"Logo not loaded: {e}")
 
     # Title
     elements.append(Paragraph("Predictive Healthcare Report", styles['HeadingLarge']))
@@ -351,6 +362,7 @@ if 'risk_score' in locals():
         file_name=f"police_health_report_{input_data['personnel_id'].iloc[0]}.pdf",
         mime="application/pdf"
     )
+
 
 
 
