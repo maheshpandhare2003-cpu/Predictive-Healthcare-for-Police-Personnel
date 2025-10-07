@@ -96,9 +96,9 @@ with col3:
 st.subheader("💻 Technology & System Usage")
 col1, col2 = st.columns(2)
 with col1:
-    technological_support = st.radio("Technology Support Level", ["High", "Medium", "Low"])
+    technological_support = st.radio("Technology Support Level Usage of Health Apps or Smart-Watches", ["High", "Medium", "Low"])
 with col2:
-    predictive_system_usage = st.radio("Use of Predictive System?", ["Yes", "No"])
+    predictive_system_usage = st.radio("Use of Predictive System? (This Application) ", ["Yes", "No"])
 
 st.subheader("📝 Awareness Section")
 
@@ -365,6 +365,7 @@ if 'risk_score' in locals():
         file_name=f"police_health_report_{input_data['personnel_id'].iloc[0]}.pdf",
         mime="application/pdf"
     )
+
 
 
 
