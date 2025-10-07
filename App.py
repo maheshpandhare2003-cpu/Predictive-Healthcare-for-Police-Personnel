@@ -230,7 +230,7 @@ if 'risk_category' in locals():  # Check if risk_category exists
     if risk_category == "✅ Normal":
         recommendations.append("Maintain your current healthy lifestyle and continue regular check-ups.")
     elif risk_category == "⚠ Borderline":
-        recommendations.append("Pay attention to your diet, exercise regularly, and monitor vital signs closely.")
+        recommendations.append("Pay attention to your diet, exercise regularly, and monitor vital signs closely with Healthcare Proffessional.")
     else:  # High Risk
         recommendations.append("Consult a healthcare professional immediately and follow preventive measures strictly.")
 
@@ -257,4 +257,5 @@ if 'risk_category' in locals():  # Check if risk_category exists
     # Display recommendations
     for rec in recommendations:
         st.success(rec)
+
 
