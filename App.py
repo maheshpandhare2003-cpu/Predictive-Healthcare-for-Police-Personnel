@@ -262,15 +262,81 @@ if 'risk_category' in locals():  # Check if risk_category exists
 st.subheader("💬 Suggestions / Comments")
 user_comments = st.text_area("Enter your comments or feedback here (optional):")
 
-st.markdown(
-    """
-    <style>
-    .stApp {background: linear-gradient(to bottom, #f0f4f8, #ffffff);}
-    h1, h2, h3 {font-family: 'Poppins', sans-serif;}
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+from fpdf import FPDF
+import streamlit as st
+import datetime
+
+if 'risk_score' in locals():
+    st.subheader("📄 Download Styled PDF Report")
+
+    class PDFReport(FPDF):
+        def header(self):
+            # Logo
+            self.image("police_logo.png", 10, 8, 25)  # replace with your local logo
+            self.set_font("Poppins", "B", 16)
+            self.cell(0, 10, "Predictive Healthcare Report", ln=True, align="C")
+            self.ln(5)
+
+        def footer(self):
+            self.set_y(-15)
+            self.set_font("Poppins", "I", 10)
+            self.set_text_color(128)
+            self.cell(0, 10, f"Generated from YourSiteName | Developed by Pranita Marodkar | Page {self.page_no()}", 0, 0, "C")
+
+    pdf = PDFReport('P', 'mm', 'A4')
+    pdf.add_page()
+    pdf.set_auto_page_break(auto=True, margin=15)
+    pdf.set_font("Poppins", "", 12)
+
+    # Section: User Info
+    pdf.set_font("Poppins", "B", 14)
+    pdf.cell(0, 10, "👤 Personnel Information", ln=True)
+    pdf.set_font("Poppins", "", 12)
+    for col in input_data.columns:
+        pdf.cell(0, 8, f"{col}: {input_data[col].iloc[0]}", ln=True)
+
+    pdf.ln(5)
+    # Risk Info
+    pdf.set_font("Poppins", "B", 14)
+    pdf.cell(0, 10, "📊 Risk Assessment", ln=True)
+    pdf.set_font("Poppins", "", 12)
+    pdf.cell(0, 8, f"Risk Score: {risk_score:.1f}", ln=True)
+    pdf.cell(0, 8, f"Risk Category: {risk_category}", ln=True)
+
+    pdf.ln(5)
+    # Top Features
+    pdf.set_font("Poppins", "B", 14)
+    pdf.cell(0, 10, "⚡ Top Factors Impacting Risk", ln=True)
+    pdf.set_font("Poppins", "", 12)
+    for i in top_indices[:5]:
+        pdf.cell(0, 8, f"{feature_names[i]} (Importance: {xgb_model.feature_importances_[i]:.2f})", ln=True)
+
+    pdf.ln(5)
+    # Recommendations
+    pdf.set_font("Poppins", "B", 14)
+    pdf.cell(0, 10, "💡 Personalized Recommendations", ln=True)
+    pdf.set_font("Poppins", "", 12)
+    for rec in recommendations:
+        pdf.multi_cell(0, 8, f"- {rec}")
+    
+    # Footer and date
+    pdf.ln(5)
+    pdf.set_font("Poppins", "I", 10)
+    pdf.cell(0, 8, f"Report Generated on: {datetime.datetime.now().strftime('%d-%m-%Y %H:%M:%S')}", ln=True)
+
+    # Save PDF to buffer
+    import io
+    pdf_buffer = io.BytesIO()
+    pdf.output(pdf_buffer)
+    pdf_buffer.seek(0)
+
+    # Download button
+    st.download_button(
+        label="📥 Download PDF Report",
+        data=pdf_buffer,
+        file_name=f"police_health_report_{personnel_id}.pdf",
+        mime="application/pdf"
+    )
 
 
 
