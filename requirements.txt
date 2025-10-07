@@ -1,0 +1,29 @@
+# Core
+pandas
+numpy
+scikit-learn
+joblib
+
+# Machine Learning / Deep Learning
+xgboost
+tensorflow
+keras
+
+# Model Explainability
+shap
+
+# Visualization
+matplotlib
+seaborn
+
+# Streamlit App
+streamlit
+
+# PDF Report
+reportlab
+
+# Optional (for better plotting/handling)
+plotly
+
+# System utilities
+datetime
