@@ -274,20 +274,27 @@ if 'risk_score' in locals():
     st.subheader("📄 Download Styled PDF Report")
 
     buffer = io.BytesIO()
-    pdf = SimpleDocTemplate(buffer, pagesize=A4,
-                            rightMargin=30, leftMargin=30,
-                            topMargin=30, bottomMargin=30)
+    pdf = SimpleDocTemplate(
+        buffer, 
+        pagesize=A4,
+        rightMargin=30, 
+        leftMargin=30,
+        topMargin=30, 
+        bottomMargin=30
+    )
 
     elements = []
     styles = getSampleStyleSheet()
-    styles.add(ParagraphStyle(name='Heading', fontSize=16, leading=20, spaceAfter=10, alignment=1, fontName='Helvetica-Bold'))
+
+    # Custom styles (renamed to avoid KeyError)
+    styles.add(ParagraphStyle(name='HeadingLarge', fontSize=16, leading=20, spaceAfter=10, alignment=1, fontName='Helvetica-Bold'))
     styles.add(ParagraphStyle(name='SubHeading', fontSize=14, leading=18, spaceAfter=8, fontName='Helvetica-Bold'))
-    styles.add(ParagraphStyle(name='NormalBold', fontSize=12, leading=16, fontName='Helvetica-Bold'))
-    styles.add(ParagraphStyle(name='Normal', fontSize=12, leading=16))
-    styles.add(ParagraphStyle(name='Footer', fontSize=10, leading=12, alignment=1, textColor=colors.grey))
+    styles.add(ParagraphStyle(name='NormalText', fontSize=12, leading=16, fontName='Helvetica'))
+    styles.add(ParagraphStyle(name='BoldText', fontSize=12, leading=16, fontName='Helvetica-Bold'))
+    styles.add(ParagraphStyle(name='FooterText', fontSize=10, leading=12, alignment=1, textColor=colors.grey))
 
     # Title
-    elements.append(Paragraph("Predictive Healthcare Report", styles['Heading']))
+    elements.append(Paragraph("Predictive Healthcare Report", styles['HeadingLarge']))
     elements.append(Spacer(1, 12))
 
     # Personnel Info Table
@@ -306,32 +313,33 @@ if 'risk_score' in locals():
 
     # Risk Assessment
     elements.append(Paragraph("Risk Assessment", styles['SubHeading']))
-    # Color-coded score
+
     if risk_category == "✅ Normal":
         color = colors.green
     elif risk_category == "⚠ Borderline":
         color = colors.orange
     else:
         color = colors.red
-    elements.append(Paragraph(f"Risk Score: {risk_score:.1f}", ParagraphStyle('risk_score', textColor=color, fontSize=12, leading=16)))
-    elements.append(Paragraph(f"Risk Category: {risk_category}", ParagraphStyle('risk_cat', textColor=color, fontSize=12, leading=16)))
+
+    elements.append(Paragraph(f"Risk Score: {risk_score:.1f}", ParagraphStyle('RiskScore', textColor=color, fontSize=12, leading=16)))
+    elements.append(Paragraph(f"Risk Category: {risk_category}", ParagraphStyle('RiskCat', textColor=color, fontSize=12, leading=16)))
     elements.append(Spacer(1, 12))
 
     # Top Features
     elements.append(Paragraph("Top Factors Impacting Risk", styles['SubHeading']))
     for i in top_indices[:5]:
-        elements.append(Paragraph(f"{feature_names[i]} (Importance: {xgb_model.feature_importances_[i]:.2f})", styles['Normal']))
+        elements.append(Paragraph(f"{feature_names[i]} (Importance: {xgb_model.feature_importances_[i]:.2f})", styles['NormalText']))
     elements.append(Spacer(1, 12))
 
-    # Personalized Recommendations
+    # Recommendations
     elements.append(Paragraph("Personalized Recommendations", styles['SubHeading']))
     for rec in recommendations:
-        elements.append(Paragraph(f"- {rec}", styles['Normal']))
+        elements.append(Paragraph(f"• {rec}", styles['NormalText']))
     elements.append(Spacer(1, 12))
 
     # Footer / Timestamp
     footer_text = f"Generated from YourSiteName | Developed by Pranita Marodkar | Report Date: {datetime.datetime.now().strftime('%d-%m-%Y %H:%M:%S')}"
-    elements.append(Paragraph(footer_text, styles['Footer']))
+    elements.append(Paragraph(footer_text, styles['FooterText']))
 
     # Build PDF
     pdf.build(elements)
@@ -343,6 +351,7 @@ if 'risk_score' in locals():
         file_name=f"police_health_report_{input_data['personnel_id'].iloc[0]}.pdf",
         mime="application/pdf"
     )
+
 
 
 
