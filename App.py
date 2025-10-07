@@ -130,13 +130,13 @@ if st.button("Predict My Risk & Recommendations"):
     # Show spinner while computing
     with st.spinner("Calculating your risk score..."):
 
-        # Prepare input data in same order as training
+        # Prepare input data
         input_data = pd.DataFrame({
             'personnel_id': [personnel_id],
             'post': [post],
             'posted_city': [posted_city],
-            'pollution_index': [float(pollution_index)],
-            'city_workload_index': [float(city_workload_index)],
+            'pollution_index': [pollution_index],
+            'city_workload_index': [city_workload_index],
             'age': [age],
             'gender': [gender],
             'years_of_service': [years_of_service],
@@ -161,6 +161,30 @@ if st.button("Predict My Risk & Recommendations"):
             'technological_support': [technological_support],
             'predictive_system_usage': [predictive_system_usage]
         })
+
+        # --- Convert numeric columns to float ---
+        numeric_cols = [
+            'personnel_id','pollution_index','city_workload_index','age','years_of_service',
+            'height_cm','weight_kg','bmi','systolic_bp','diastolic_bp','heart_rate','spo2',
+            'fasting_blood_sugar','cholesterol','sleep_hours','exercise_mins_per_week',
+            'stress_level','working_hours_per_week'
+        ]
+
+        for col in numeric_cols:
+            input_data[col] = pd.to_numeric(input_data[col], errors='coerce')  # converts invalid values to NaN
+
+        # Check for invalid numeric input
+        if input_data[numeric_cols].isnull().any().any():
+            st.error("Some numeric inputs are invalid. Please check your entries.")
+            st.stop()  # stop execution if invalid
+
+        # --- Ensure categorical columns are strings ---
+        categorical_cols = [
+            'post','posted_city','gender','chronic_disease','smoking','alcohol',
+            'shift_pattern','healthcare_scheme','technological_support','predictive_system_usage'
+        ]
+        for col in categorical_cols:
+            input_data[col] = input_data[col].astype(str).fillna("Unknown")
 
         # Encode categorical features
         input_encoded = ct_encoder.transform(input_data)
@@ -195,4 +219,3 @@ if st.button("Predict My Risk & Recommendations"):
         # Placeholder for Recommendations
         st.subheader("💡 Personalized Recommendations")
         st.info("Based on your risk profile, recommended preventive measures will be displayed here.")
-
