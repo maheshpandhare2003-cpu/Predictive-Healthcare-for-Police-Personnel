@@ -294,7 +294,7 @@ if 'risk_score' in locals():
 
     # Section: Personnel Info
     pdf.set_font("Arial", "B", 14)
-    pdf.cell(0, 10, "👤 Personnel Information", ln=True)
+    pdf.cell(0, 10, "Personnel Information", ln=True)
     pdf.set_font("Arial", "", 12)
     for col in input_data.columns:
         pdf.cell(0, 8, f"{col}: {input_data[col].iloc[0]}", ln=True)
@@ -302,10 +302,10 @@ if 'risk_score' in locals():
     pdf.ln(5)
     # Risk Info
     pdf.set_font("Arial", "B", 14)
-    pdf.cell(0, 10, "📊 Risk Assessment", ln=True)
+    pdf.cell(0, 10, "Risk Assessment", ln=True)
     pdf.set_font("Arial", "", 12)
     # Color-coded risk category
-    if risk_category == "✅ Normal":
+    if risk_category == "Normal":
         pdf.set_text_color(0, 128, 0)  # Green
     elif risk_category == "⚠ Borderline":
         pdf.set_text_color(255, 165, 0)  # Orange
@@ -318,7 +318,7 @@ if 'risk_score' in locals():
     pdf.ln(5)
     # Top Features
     pdf.set_font("Arial", "B", 14)
-    pdf.cell(0, 10, "⚡ Top Factors Impacting Risk", ln=True)
+    pdf.cell(0, 10, " Top Factors Impacting Risk", ln=True)
     pdf.set_font("Arial", "", 12)
     for i in top_indices[:5]:
         pdf.cell(0, 8, f"{feature_names[i]} (Importance: {xgb_model.feature_importances_[i]:.2f})", ln=True)
@@ -326,7 +326,7 @@ if 'risk_score' in locals():
     pdf.ln(5)
     # Personalized Recommendations
     pdf.set_font("Arial", "B", 14)
-    pdf.cell(0, 10, "💡 Personalized Recommendations", ln=True)
+    pdf.cell(0, 10, " Personalized Recommendations", ln=True)
     pdf.set_font("Arial", "", 12)
     for rec in recommendations:
         pdf.multi_cell(0, 8, f"- {rec}")
@@ -347,6 +347,7 @@ if 'risk_score' in locals():
         file_name=f"police_health_report_{personnel_id}.pdf",
         mime="application/pdf"
     )
+
 
 
 
