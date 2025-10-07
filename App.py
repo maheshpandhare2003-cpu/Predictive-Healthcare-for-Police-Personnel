@@ -74,7 +74,7 @@ col1, col2, col3 = st.columns(3)
 with col1:
     exercise_mins_per_week = st.number_input("Exercise minutes per week (0 if none)", min_value=0, max_value=1000)
     sleep_hours = st.number_input("Sleep hours per day", min_value=1, max_value=24)
-    diet_quality = st.selectbox("Diet Quality", df['diet_quality'].unique())
+    diet_quality = st.text_input("Diet Quality (Enter your description)")
 
 with col2:
     stress_level = st.slider("Stress Level (1-10)", min_value=1, max_value=10)
