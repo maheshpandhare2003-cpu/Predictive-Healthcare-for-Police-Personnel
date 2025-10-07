@@ -93,7 +93,7 @@ with col2:
 with col3:
     # Automatically set pollution_index & city_workload_index based on posted city
     city_data = df[df['posted_city'] == posted_city].iloc[0]
-    pollution_index = st.text_input("Pollution Index", value=city_data['pollution_index'], disabled=True)
+    pollution_index = st.text_input("City Pollution Index", value=city_data['pollution_index'], disabled=True)
     city_workload_index = st.text_input("City Workload Index", value=city_data['city_workload_index'], disabled=True)
     height_cm = st.number_input("Height (cm)", min_value=120, max_value=250)
     weight_kg = st.number_input("Weight (kg)", min_value=30, max_value=200)
@@ -472,6 +472,7 @@ if 'risk_score' in locals():
         file_name=f"police_health_report_{input_data['personnel_id'].iloc[0]}.pdf",
         mime="application/pdf"
     )
+
 
 
 
