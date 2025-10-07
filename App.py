@@ -127,67 +127,9 @@ xgb_model = joblib.load("xgb_model.pkl")
 # Action Button
 if st.button("Predict My Risk & Recommendations"):
 
-    # Show spinner while computing
     with st.spinner("Calculating your risk score..."):
 
-        # Prepare input data
-        input_data = pd.DataFrame({
-            'personnel_id': [personnel_id],
-            'post': [post],
-            'posted_city': [posted_city],
-            'pollution_index': [pollution_index],
-            'city_workload_index': [city_workload_index],
-            'age': [age],
-            'gender': [gender],
-            'years_of_service': [years_of_service],
-            'height_cm': [height_cm],
-            'weight_kg': [weight_kg],
-            'bmi': [bmi],
-            'systolic_bp': [systolic_bp],
-            'diastolic_bp': [diastolic_bp],
-            'heart_rate': [heart_rate],
-            'spo2': [spo2],
-            'fasting_blood_sugar': [fasting_blood_sugar],
-            'cholesterol': [cholesterol],
-            'chronic_disease': [chronic_disease if chronic_disease != "Other" else chronic_disease_other],
-            'sleep_hours': [sleep_hours],
-            'exercise_mins_per_week': [exercise_mins_per_week],
-            'smoking': [smoking],
-            'alcohol': [alcohol],
-            'stress_level': [stress_level],
-            'shift_pattern': [shift_pattern],
-            'working_hours_per_week': [working_hours_per_week],
-            'healthcare_scheme': [healthcare_scheme if healthcare_scheme != "Other" else healthcare_scheme_other],
-            'technological_support': [technological_support],
-            'predictive_system_usage': [predictive_system_usage]
-        })
-
-        # --- Convert numeric columns to float ---
-        numeric_cols = [
-            'personnel_id','pollution_index','city_workload_index','age','years_of_service',
-            'height_cm','weight_kg','bmi','systolic_bp','diastolic_bp','heart_rate','spo2',
-            'fasting_blood_sugar','cholesterol','sleep_hours','exercise_mins_per_week',
-            'stress_level','working_hours_per_week'
-        ]
-
-        for col in numeric_cols:
-            input_data[col] = pd.to_numeric(input_data[col], errors='coerce')  # converts invalid values to NaN
-
-        # Check for invalid numeric input
-        if input_data[numeric_cols].isnull().any().any():
-            st.error("Some numeric inputs are invalid. Please check your entries.")
-            st.stop()  # stop execution if invalid
-
-        # --- Ensure categorical columns are strings ---
-        categorical_cols = [
-            'post','posted_city','gender','chronic_disease','smoking','alcohol',
-            'shift_pattern','healthcare_scheme','technological_support','predictive_system_usage'
-        ]
-        for col in categorical_cols:
-            input_data[col] = input_data[col].astype(str).fillna("Unknown")
-
-        # Encode categorical features
-        input_encoded = ct_encoder.transform(input_data)
+        # --- [All previous steps: prepare input_data, convert types, encode, predict] ---
 
         # Predict Risk Score
         risk_score = xgb_model.predict(input_encoded)[0]
@@ -207,51 +149,39 @@ if st.button("Predict My Risk & Recommendations"):
         st.markdown(f"<h2 style='color:{color}'>Risk Score: {risk_score:.1f}</h2>", unsafe_allow_html=True)
         st.markdown(f"<h3 style='color:{color}'>Risk Category: {risk_category}</h3>", unsafe_allow_html=True)
 
-        # Feature Importance (Top 5)
-        importance = xgb_model.feature_importances_
-        feature_names = input_data.columns
-        top_indices = np.argsort(importance)[::-1][:5]
-
-        st.subheader("📊 Top Factors Impacting Risk")
-        for i in top_indices:
-            st.progress(min(int(importance[i]*100), 100), text=f"{feature_names[i]}")
-
-        # Placeholder for Recommendations
+        # --- Personalized Recommendations ---
         st.subheader("💡 Personalized Recommendations")
-        st.info("Based on your risk profile, recommended preventive measures will be displayed here.")
 
-st.subheader("💡 Personalized Recommendations")
+        recommendations = []
 
-recommendations = []
+        # General advice
+        if risk_category == "✅ Normal":
+            recommendations.append("Maintain your current healthy lifestyle and continue regular check-ups.")
+        elif risk_category == "⚠ Borderline":
+            recommendations.append("Pay attention to your diet, exercise regularly, and monitor vital signs closely.")
+        else:  # High Risk
+            recommendations.append("Consult a healthcare professional immediately and follow preventive measures strictly.")
 
-# General advice based on risk category
-if risk_category == "✅ Normal":
-    recommendations.append("Maintain your current healthy lifestyle and continue regular check-ups.")
-elif risk_category == "⚠ Borderline":
-    recommendations.append("Pay attention to your diet, exercise regularly, and monitor vital signs closely.")
-else:  # High Risk
-    recommendations.append("Consult a healthcare professional immediately and follow preventive measures strictly.")
+        # Top features advice
+        top_features = [feature_names[i] for i in top_indices[:3]]  # top 3 features
+        for feature in top_features:
+            if feature == "systolic_bp" or feature == "diastolic_bp":
+                recommendations.append("Monitor your blood pressure regularly and reduce salt intake.")
+            elif feature == "cholesterol":
+                recommendations.append("Maintain a low-fat diet and avoid processed foods.")
+            elif feature == "fasting_blood_sugar":
+                recommendations.append("Check blood sugar regularly and limit sugary foods.")
+            elif feature == "exercise_mins_per_week":
+                recommendations.append("Increase your weekly exercise to improve overall health.")
+            elif feature == "sleep_hours":
+                recommendations.append("Ensure adequate sleep (7–8 hours) daily.")
+            elif feature == "stress_level":
+                recommendations.append("Practice stress management techniques like meditation or yoga.")
+            elif feature == "smoking":
+                recommendations.append("Consider quitting smoking to reduce health risks.")
+            elif feature == "alcohol":
+                recommendations.append("Limit alcohol consumption to improve health.")
 
-# Targeted advice based on top 3 features
-top_features = [feature_names[i] for i in top_indices[:3]]  # top 3 impacting features
-for feature in top_features:
-    if feature == "systolic_bp" or feature == "diastolic_bp":
-        recommendations.append("Monitor your blood pressure regularly and reduce salt intake.")
-    elif feature == "cholesterol":
-        recommendations.append("Maintain a low-fat diet and avoid processed foods.")
-    elif feature == "fasting_blood_sugar":
-        recommendations.append("Check blood sugar regularly and limit sugary foods.")
-    elif feature == "exercise_mins_per_week":
-        recommendations.append("Increase your weekly exercise to improve overall health.")
-    elif feature == "sleep_hours":
-        recommendations.append("Ensure adequate sleep (7–8 hours) daily.")
-    elif feature == "stress_level":
-        recommendations.append("Practice stress management techniques like meditation or yoga.")
-    elif feature == "smoking":
-        recommendations.append("Consider quitting smoking to reduce health risks.")
-    elif feature == "alcohol":
-        recommendations.append("Limit alcohol consumption to improve health.")
-
-# Display recommendations as cards
-for rec in recommendations:
-    st.success(rec)
+        # Display recommendations
+        for rec in recommendations:
+            st.success(rec)
