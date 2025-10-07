@@ -262,7 +262,10 @@ if 'risk_category' in locals():  # Check if risk_category exists
 st.subheader("💬 Suggestions / Comments")
 user_comments = st.text_area("Enter your comments or feedback here (optional):")
 
-from fpdf import FPDF
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib import colors
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 import io
 import datetime
 import streamlit as st
@@ -270,84 +273,76 @@ import streamlit as st
 if 'risk_score' in locals():
     st.subheader("📄 Download Styled PDF Report")
 
-    class PDFReport(FPDF):
-        def header(self):
-            # Logo (optional, replace with local path if you have)
-            try:
-                self.image("police_logo.png", 10, 8, 25)
-            except:
-                pass  # Skip if logo not found
-            self.set_font("Arial", "B", 16)
-            self.cell(0, 10, "Predictive Healthcare Report", ln=True, align="C")
-            self.ln(5)
+    buffer = io.BytesIO()
+    pdf = SimpleDocTemplate(buffer, pagesize=A4,
+                            rightMargin=30, leftMargin=30,
+                            topMargin=30, bottomMargin=30)
 
-        def footer(self):
-            self.set_y(-15)
-            self.set_font("Arial", "I", 10)
-            self.set_text_color(128)
-            self.cell(0, 10, f"Generated from YourSiteName | Developed by Pranita Marodkar | Page {self.page_no()}", 0, 0, "C")
+    elements = []
+    styles = getSampleStyleSheet()
+    styles.add(ParagraphStyle(name='Heading', fontSize=16, leading=20, spaceAfter=10, alignment=1, fontName='Helvetica-Bold'))
+    styles.add(ParagraphStyle(name='SubHeading', fontSize=14, leading=18, spaceAfter=8, fontName='Helvetica-Bold'))
+    styles.add(ParagraphStyle(name='NormalBold', fontSize=12, leading=16, fontName='Helvetica-Bold'))
+    styles.add(ParagraphStyle(name='Normal', fontSize=12, leading=16))
+    styles.add(ParagraphStyle(name='Footer', fontSize=10, leading=12, alignment=1, textColor=colors.grey))
 
-    pdf = PDFReport('P', 'mm', 'A4')
-    pdf.add_page()
-    pdf.set_auto_page_break(auto=True, margin=15)
-    pdf.set_font("Arial", "", 12)
+    # Title
+    elements.append(Paragraph("Predictive Healthcare Report", styles['Heading']))
+    elements.append(Spacer(1, 12))
 
-    # Section: Personnel Info
-    pdf.set_font("Arial", "B", 14)
-    pdf.cell(0, 10, "Personnel Information", ln=True)
-    pdf.set_font("Arial", "", 12)
-    for col in input_data.columns:
-        pdf.cell(0, 8, f"{col}: {input_data[col].iloc[0]}", ln=True)
+    # Personnel Info Table
+    elements.append(Paragraph("Personnel Information", styles['SubHeading']))
+    data = [[col, str(input_data[col].iloc[0])] for col in input_data.columns]
+    table = Table(data, colWidths=[150, 350])
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), colors.lightgrey),
+        ('GRID', (0,0), (-1,-1), 0.5, colors.black),
+        ('FONTNAME', (0,0), (-1,-1), 'Helvetica'),
+        ('FONTSIZE', (0,0), (-1,-1), 10),
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+    ]))
+    elements.append(table)
+    elements.append(Spacer(1, 12))
 
-    pdf.ln(5)
-    # Risk Info
-    pdf.set_font("Arial", "B", 14)
-    pdf.cell(0, 10, "Risk Assessment", ln=True)
-    pdf.set_font("Arial", "", 12)
-    # Color-coded risk category
+    # Risk Assessment
+    elements.append(Paragraph("Risk Assessment", styles['SubHeading']))
+    # Color-coded score
     if risk_category == "✅ Normal":
-        pdf.set_text_color(0, 128, 0)  # Green
+        color = colors.green
     elif risk_category == "⚠ Borderline":
-        pdf.set_text_color(255, 165, 0)  # Orange
+        color = colors.orange
     else:
-        pdf.set_text_color(255, 0, 0)  # Red
-    pdf.cell(0, 8, f"Risk Score: {risk_score:.1f}", ln=True)
-    pdf.cell(0, 8, f"Risk Category: {risk_category}", ln=True)
-    pdf.set_text_color(0, 0, 0)  # Reset to black
+        color = colors.red
+    elements.append(Paragraph(f"Risk Score: {risk_score:.1f}", ParagraphStyle('risk_score', textColor=color, fontSize=12, leading=16)))
+    elements.append(Paragraph(f"Risk Category: {risk_category}", ParagraphStyle('risk_cat', textColor=color, fontSize=12, leading=16)))
+    elements.append(Spacer(1, 12))
 
-    pdf.ln(5)
     # Top Features
-    pdf.set_font("Arial", "B", 14)
-    pdf.cell(0, 10, "Top Factors Impacting Risk", ln=True)
-    pdf.set_font("Arial", "", 12)
+    elements.append(Paragraph("Top Factors Impacting Risk", styles['SubHeading']))
     for i in top_indices[:5]:
-        pdf.cell(0, 8, f"{feature_names[i]} (Importance: {xgb_model.feature_importances_[i]:.2f})", ln=True)
+        elements.append(Paragraph(f"{feature_names[i]} (Importance: {xgb_model.feature_importances_[i]:.2f})", styles['Normal']))
+    elements.append(Spacer(1, 12))
 
-    pdf.ln(5)
     # Personalized Recommendations
-    pdf.set_font("Arial", "B", 14)
-    pdf.cell(0, 10, "Personalized Recommendations", ln=True)
-    pdf.set_font("Arial", "", 12)
+    elements.append(Paragraph("Personalized Recommendations", styles['SubHeading']))
     for rec in recommendations:
-        pdf.multi_cell(0, 8, f"- {rec}")
+        elements.append(Paragraph(f"- {rec}", styles['Normal']))
+    elements.append(Spacer(1, 12))
 
-    pdf.ln(5)
-    pdf.set_font("Arial", "I", 10)
-    pdf.cell(0, 8, f"Report Generated on: {datetime.datetime.now().strftime('%d-%m-%Y %H:%M:%S')}", ln=True)
+    # Footer / Timestamp
+    footer_text = f"Generated from YourSiteName | Developed by Pranita Marodkar | Report Date: {datetime.datetime.now().strftime('%d-%m-%Y %H:%M:%S')}"
+    elements.append(Paragraph(footer_text, styles['Footer']))
 
-    # Save PDF to buffer
-    pdf_buffer = io.BytesIO()
-    pdf.output(pdf_buffer)
-    pdf_buffer.seek(0)
+    # Build PDF
+    pdf.build(elements)
 
-    # Streamlit Download Button
+    buffer.seek(0)
     st.download_button(
-        label="Download PDF Report",
-        data=pdf_buffer,
-        file_name=f"police_health_report_{personnel_id}.pdf",
+        label="📥 Download PDF Report",
+        data=buffer,
+        file_name=f"police_health_report_{input_data['personnel_id'].iloc[0]}.pdf",
         mime="application/pdf"
     )
-
 
 
 
