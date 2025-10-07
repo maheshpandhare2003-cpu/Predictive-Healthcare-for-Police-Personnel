@@ -219,3 +219,39 @@ if st.button("Predict My Risk & Recommendations"):
         # Placeholder for Recommendations
         st.subheader("💡 Personalized Recommendations")
         st.info("Based on your risk profile, recommended preventive measures will be displayed here.")
+
+st.subheader("💡 Personalized Recommendations")
+
+recommendations = []
+
+# General advice based on risk category
+if risk_category == "✅ Normal":
+    recommendations.append("Maintain your current healthy lifestyle and continue regular check-ups.")
+elif risk_category == "⚠ Borderline":
+    recommendations.append("Pay attention to your diet, exercise regularly, and monitor vital signs closely.")
+else:  # High Risk
+    recommendations.append("Consult a healthcare professional immediately and follow preventive measures strictly.")
+
+# Targeted advice based on top 3 features
+top_features = [feature_names[i] for i in top_indices[:3]]  # top 3 impacting features
+for feature in top_features:
+    if feature == "systolic_bp" or feature == "diastolic_bp":
+        recommendations.append("Monitor your blood pressure regularly and reduce salt intake.")
+    elif feature == "cholesterol":
+        recommendations.append("Maintain a low-fat diet and avoid processed foods.")
+    elif feature == "fasting_blood_sugar":
+        recommendations.append("Check blood sugar regularly and limit sugary foods.")
+    elif feature == "exercise_mins_per_week":
+        recommendations.append("Increase your weekly exercise to improve overall health.")
+    elif feature == "sleep_hours":
+        recommendations.append("Ensure adequate sleep (7–8 hours) daily.")
+    elif feature == "stress_level":
+        recommendations.append("Practice stress management techniques like meditation or yoga.")
+    elif feature == "smoking":
+        recommendations.append("Consider quitting smoking to reduce health risks.")
+    elif feature == "alcohol":
+        recommendations.append("Limit alcohol consumption to improve health.")
+
+# Display recommendations as cards
+for rec in recommendations:
+    st.success(rec)
