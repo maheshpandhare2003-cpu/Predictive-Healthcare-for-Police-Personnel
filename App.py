@@ -117,3 +117,82 @@ for q in awareness_questions:
         index=2  # Default to 'Neutral'
     )
 
+import joblib
+import numpy as np
+
+# Load Encoder and Model
+ct_encoder = joblib.load("ct_encoder.pkl")
+xgb_model = joblib.load("xgb_model.pkl")
+
+# Action Button
+if st.button("Predict My Risk & Recommendations"):
+
+    # Show spinner while computing
+    with st.spinner("Calculating your risk score..."):
+
+        # Prepare input data in same order as training
+        input_data = pd.DataFrame({
+            'personnel_id': [personnel_id],
+            'post': [post],
+            'posted_city': [posted_city],
+            'pollution_index': [float(pollution_index)],
+            'city_workload_index': [float(city_workload_index)],
+            'age': [age],
+            'gender': [gender],
+            'years_of_service': [years_of_service],
+            'height_cm': [height_cm],
+            'weight_kg': [weight_kg],
+            'bmi': [bmi],
+            'systolic_bp': [systolic_bp],
+            'diastolic_bp': [diastolic_bp],
+            'heart_rate': [heart_rate],
+            'spo2': [spo2],
+            'fasting_blood_sugar': [fasting_blood_sugar],
+            'cholesterol': [cholesterol],
+            'chronic_disease': [chronic_disease if chronic_disease != "Other" else chronic_disease_other],
+            'sleep_hours': [sleep_hours],
+            'exercise_mins_per_week': [exercise_mins_per_week],
+            'smoking': [smoking],
+            'alcohol': [alcohol],
+            'stress_level': [stress_level],
+            'shift_pattern': [shift_pattern],
+            'working_hours_per_week': [working_hours_per_week],
+            'healthcare_scheme': [healthcare_scheme if healthcare_scheme != "Other" else healthcare_scheme_other],
+            'technological_support': [technological_support],
+            'predictive_system_usage': [predictive_system_usage]
+        })
+
+        # Encode categorical features
+        input_encoded = ct_encoder.transform(input_data)
+
+        # Predict Risk Score
+        risk_score = xgb_model.predict(input_encoded)[0]
+
+        # Map risk score to category
+        if risk_score < 40:
+            risk_category = "✅ Normal"
+            color = "green"
+        elif risk_score < 70:
+            risk_category = "⚠ Borderline"
+            color = "yellow"
+        else:
+            risk_category = "❌ High Risk"
+            color = "red"
+
+        # Display Risk Score
+        st.markdown(f"<h2 style='color:{color}'>Risk Score: {risk_score:.1f}</h2>", unsafe_allow_html=True)
+        st.markdown(f"<h3 style='color:{color}'>Risk Category: {risk_category}</h3>", unsafe_allow_html=True)
+
+        # Feature Importance (Top 5)
+        importance = xgb_model.feature_importances_
+        feature_names = input_data.columns
+        top_indices = np.argsort(importance)[::-1][:5]
+
+        st.subheader("📊 Top Factors Impacting Risk")
+        for i in top_indices:
+            st.progress(min(int(importance[i]*100), 100), text=f"{feature_names[i]}")
+
+        # Placeholder for Recommendations
+        st.subheader("💡 Personalized Recommendations")
+        st.info("Based on your risk profile, recommended preventive measures will be displayed here.")
+
