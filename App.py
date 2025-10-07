@@ -272,7 +272,7 @@ if 'risk_score' in locals():
     class PDFReport(FPDF):
         def header(self):
             # Logo
-            self.image("police_logo.png", 10, 8, 25)  # replace with your local logo
+            self.image("—Pngtree—gold police officer badge_7258551.png", 10, 8, 25)  # replace with your local logo
             self.set_font("Poppins", "B", 16)
             self.cell(0, 10, "Predictive Healthcare Report", ln=True, align="C")
             self.ln(5)
@@ -337,6 +337,7 @@ if 'risk_score' in locals():
         file_name=f"police_health_report_{personnel_id}.pdf",
         mime="application/pdf"
     )
+
 
 
 
