@@ -1,9 +1,9 @@
 import streamlit as st
-
+import base64
 # App Title and Header
 st.set_page_config(
     page_title="Predictive Healthcare for Police Personnel",
-    page_icon="police_logo.png",
+    page_icon="—Pngtree—gold police officer badge_7258551.png",
     layout="wide"
 )
 
@@ -369,6 +369,7 @@ if 'risk_score' in locals():
         file_name=f"police_health_report_{input_data['personnel_id'].iloc[0]}.pdf",
         mime="application/pdf"
     )
+
 
 
 
