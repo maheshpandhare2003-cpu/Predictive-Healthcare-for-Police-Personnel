@@ -217,12 +217,12 @@ if st.button("Predict My Risk & Recommendations"):
             st.progress(min(int(importance[i]*100), 100), text=f"{feature_names[i]}")
 
         # Placeholder for Recommendations
-        st.subheader("💡 Personalized Recommendations")
-        st.info("Based on your risk profile, recommended preventive measures will be displayed here.")
+        
 
 # Personalized Recommendations (Safe Version)
 if 'risk_category' in locals():  # Check if risk_category exists
     st.subheader("💡 Personalized Recommendations")
+    st.info("Based on your risk profile, recommended preventive measures will be displayed here.")
 
     recommendations = []
 
@@ -257,3 +257,4 @@ if 'risk_category' in locals():  # Check if risk_category exists
     # Display recommendations
     for rec in recommendations:
         st.success(rec)
+
