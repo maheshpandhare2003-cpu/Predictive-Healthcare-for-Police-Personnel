@@ -261,13 +261,13 @@ if st.button("Predict My Risk & Recommendations"):
         # Define color dynamically based on risk category
         if risk_category == "✅ Normal":
             color = "#00C853"      # green
-            glow = "0 0 15px rgba(0, 200, 83, 0.8)"
+            glow = "0 0 10px rgba(0, 200, 83, 0.8)"
         elif risk_category == "⚠ Borderline":
             color = "#FFA000"      # amber
-            glow = "0 0 15px rgba(255, 160, 0, 0.8)"
+            glow = "0 0 10px rgba(255, 160, 0, 0.8)"
         else:
             color = "#D32F2F"      # red
-            glow = "0 0 15px rgba(211, 47, 47, 0.8)"
+            glow = "0 0 10px rgba(211, 47, 47, 0.8)"
         
         # Stylish section for Risk Score & Category
         st.markdown(
@@ -472,6 +472,7 @@ if 'risk_score' in locals():
         file_name=f"police_health_report_{input_data['personnel_id'].iloc[0]}.pdf",
         mime="application/pdf"
     )
+
 
 
 
