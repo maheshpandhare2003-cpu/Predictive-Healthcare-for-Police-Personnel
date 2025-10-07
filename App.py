@@ -3,17 +3,20 @@ import streamlit as st
 # App Title and Header
 st.set_page_config(page_title="Predictive Healthcare for Police Personnel", layout="wide")
 
+import base64
+# Convert logo image to base64
+with open("—Pngtree—gold police officer badge_7258551.png", "rb") as img_file:
+    encoded_logo = base64.b64encode(img_file.read()).decode()
+
 # Header Section
 st.markdown(
-    """
-    <div style='text-align: center; padding: 10px; background-color: #1E3A8A; color: white; border-radius: 10px;'>
-        <img src='data:image/png;base64,{}' width='100'>
+    f"""
+    <div style='text-align: center; padding: 15px; background-color: #1E3A8A; color: white; border-radius: 10px;'>
+        <img src='data:image/png;base64,{encoded_logo}' width='100'><br>
         <h1>Predictive Healthcare for Police Personnel</h1>
         <p>Get your personalized risk assessment and preventive suggestions</p>
     </div>
-    """.format(
-        base64.b64encode(open("—Pngtree—gold police officer badge_7258551.png", "rb").read()).decode()
-    ),
+    """,
     unsafe_allow_html=True
 )
 
@@ -293,7 +296,7 @@ if 'risk_score' in locals():
     styles.add(ParagraphStyle(name='NormalText', fontSize=12, leading=16, fontName='Helvetica'))
     styles.add(ParagraphStyle(name='BoldText', fontSize=12, leading=16, fontName='Helvetica-Bold'))
     styles.add(ParagraphStyle(name='FooterText', fontSize=10, leading=12, alignment=1, textColor=colors.grey))
-    from reportlab.platypus import Image
+    from reportlab.platypus import Image ,Spacer
 
     # Add logo at top
     try:
@@ -362,6 +365,7 @@ if 'risk_score' in locals():
         file_name=f"police_health_report_{input_data['personnel_id'].iloc[0]}.pdf",
         mime="application/pdf"
     )
+
 
 
 
