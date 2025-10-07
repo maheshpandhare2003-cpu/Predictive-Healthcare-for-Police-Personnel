@@ -15,14 +15,61 @@ with open("—Pngtree—gold police officer badge_7258551.png", "rb") as img_fil
 # Header Section
 st.markdown(
     f"""
-    <div style='text-align: center; padding: 15px; background-color: #1E3A8A; color: white; border-radius: 10px;'>
-        <img src='data:image/png;base64,{encoded_logo}' width='100'><br>
+    <style>
+        @keyframes gradientShift {{
+            0% {{ background-position: 0% 50%; }}
+            50% {{ background-position: 100% 50%; }}
+            100% {{ background-position: 0% 50%; }}
+        }}
+
+        .app-header {{
+            text-align: center;
+            padding: 25px;
+            color: white;
+            border-radius: 15px;
+            background: linear-gradient(135deg, #0F2027, #203A43, #2C5364);
+            background-size: 300% 300%;
+            animation: gradientShift 10s ease infinite;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+        }}
+
+        .app-header img {{
+            width: 110px;
+            border-radius: 50%;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }}
+
+        .app-header img:hover {{
+            transform: scale(1.05);
+            box-shadow: 0 0 25px rgba(0, 191, 255, 0.9);
+        }}
+
+        .app-header h1 {{
+            margin-top: 10px;
+            font-size: 2.2em;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: #E0F7FA;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+        }}
+
+        .app-header p {{
+            font-size: 1.1em;
+            color: #B3E5FC;
+            text-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+        }}
+    </style>
+
+    <div class='app-header'>
+        <img src='data:image/png;base64,{encoded_logo}' alt='Police Logo'>
         <h1>Predictive Healthcare for Police Personnel</h1>
         <p>Get your personalized risk assessment and preventive suggestions</p>
     </div>
     """,
     unsafe_allow_html=True
 )
+
 
 import pandas as pd
 
@@ -369,6 +416,7 @@ if 'risk_score' in locals():
         file_name=f"police_health_report_{input_data['personnel_id'].iloc[0]}.pdf",
         mime="application/pdf"
     )
+
 
 
 
