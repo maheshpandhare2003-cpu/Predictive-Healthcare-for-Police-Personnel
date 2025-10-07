@@ -15,6 +15,7 @@ shap
 # Visualization
 matplotlib
 seaborn
+fpdf2
 
 # Streamlit App
 streamlit
@@ -27,3 +28,4 @@ plotly
 
 # System utilities
 datetime
+
