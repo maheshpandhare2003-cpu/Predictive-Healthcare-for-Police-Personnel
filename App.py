@@ -271,7 +271,7 @@ import datetime
 import streamlit as st
 
 if 'risk_score' in locals():
-    st.subheader("📄 Download Styled PDF Report")
+    st.subheader("📄 Download PDF Report")
 
     buffer = io.BytesIO()
     pdf = SimpleDocTemplate(
@@ -338,7 +338,7 @@ if 'risk_score' in locals():
     elements.append(Spacer(1, 12))
 
     # Footer / Timestamp
-    footer_text = f"Generated from YourSiteName | Developed by Pranita Marodkar | Report Date: {datetime.datetime.now().strftime('%d-%m-%Y %H:%M:%S')}"
+    footer_text = f"Generated from Police Personnel Healthcare | Developed by Pranita Marodkar | Report Date: {datetime.datetime.now().strftime('%d-%m-%Y %H:%M:%S')}"
     elements.append(Paragraph(footer_text, styles['FooterText']))
 
     # Build PDF
@@ -351,6 +351,7 @@ if 'risk_score' in locals():
         file_name=f"police_health_report_{input_data['personnel_id'].iloc[0]}.pdf",
         mime="application/pdf"
     )
+
 
 
 
