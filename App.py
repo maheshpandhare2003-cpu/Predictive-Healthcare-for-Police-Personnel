@@ -250,17 +250,73 @@ if st.button("Predict My Risk & Recommendations"):
         # Map risk score to category
         if risk_score < 40:
             risk_category = "✅ Normal"
-            color = "green"
+            # color = "green"
         elif risk_score < 70:
             risk_category = "⚠ Borderline"
-            color = "yellow"
+            # color = "yellow"
         else:
             risk_category = "❌ High Risk"
-            color = "red"
+            # color = "red"
 
-        # Display Risk Score
-        st.markdown(f"<h2 style='color:{color}'>Risk Score: {risk_score:.1f}</h2>", unsafe_allow_html=True)
-        st.markdown(f"<h3 style='color:{color}'>Risk Category: {risk_category}</h3>", unsafe_allow_html=True)
+        # Define color dynamically based on risk category
+        if risk_category == "✅ Normal":
+            color = "#00C853"      # green
+            glow = "0 0 15px rgba(0, 200, 83, 0.8)"
+        elif risk_category == "⚠ Borderline":
+            color = "#FFA000"      # amber
+            glow = "0 0 15px rgba(255, 160, 0, 0.8)"
+        else:
+            color = "#D32F2F"      # red
+            glow = "0 0 15px rgba(211, 47, 47, 0.8)"
+        
+        # Stylish section for Risk Score & Category
+        st.markdown(
+            f"""
+            <style>
+                @keyframes pulseGlow {{
+                    0% {{ box-shadow: {glow}; }}
+                    50% {{ box-shadow: 0 0 25px rgba(255, 255, 255, 0.6); }}
+                    100% {{ box-shadow: {glow}; }}
+                }}
+        
+                .risk-box {{
+                    margin-top: 30px;
+                    text-align: center;
+                    padding: 20px;
+                    border-radius: 15px;
+                    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+                    color: white;
+                    box-shadow: {glow};
+                    animation: pulseGlow 4s infinite ease-in-out;
+                    transition: transform 0.3s ease;
+                }}
+        
+                .risk-box:hover {{
+                    transform: scale(1.03);
+                }}
+        
+                .risk-score {{
+                    font-size: 2.2em;
+                    color: {color};
+                    text-shadow: 0 0 10px {color};
+                    font-weight: 700;
+                }}
+        
+                .risk-category {{
+                    font-size: 1.5em;
+                    color: {color};
+                    text-shadow: 0 0 10px {color};
+                    font-weight: 600;
+                }}
+            </style>
+        
+            <div class="risk-box">
+                <h2 class="risk-score">Risk Score: {risk_score:.1f}</h2>
+                <h3 class="risk-category">Risk Category: {risk_category}</h3>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
         # Feature Importance (Top 5)
         importance = xgb_model.feature_importances_
@@ -416,6 +472,7 @@ if 'risk_score' in locals():
         file_name=f"police_health_report_{input_data['personnel_id'].iloc[0]}.pdf",
         mime="application/pdf"
     )
+
 
 
 
