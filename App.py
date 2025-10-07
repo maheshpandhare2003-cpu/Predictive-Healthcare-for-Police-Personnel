@@ -262,4 +262,15 @@ if 'risk_category' in locals():  # Check if risk_category exists
 st.subheader("💬 Suggestions / Comments")
 user_comments = st.text_area("Enter your comments or feedback here (optional):")
 
+st.markdown(
+    """
+    <style>
+    .stApp {background: linear-gradient(to bottom, #f0f4f8, #ffffff);}
+    h1, h2, h3 {font-family: 'Poppins', sans-serif;}
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+
 
