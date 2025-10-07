@@ -95,3 +95,25 @@ with col1:
     technological_support = st.radio("Technology Support Level", ["High", "Medium", "Low"])
 with col2:
     predictive_system_usage = st.radio("Use of Predictive System?", ["Yes", "No"])
+
+st.subheader("📝 Awareness Section")
+
+awareness_questions = [
+    "I am fully aware of the healthcare policies designed for police personnel in my department.",
+    "I regularly participate in healthcare or wellness programs provided by the department.",
+    "The process for accessing departmental healthcare services is straightforward.",
+    "I am satisfied with the healthcare benefits offered to me as a police officer.",
+    "The healthcare policies are well communicated to all personnel.",
+    "Department policies have improved my health and wellbeing."
+]
+
+# Store responses
+awareness_responses = {}
+
+for q in awareness_questions:
+    awareness_responses[q] = st.radio(
+        q,
+        ["Strongly Agree", "Agree", "Neutral", "Disagree", "Strongly Disagree"],
+        index=2  # Default to 'Neutral'
+    )
+
