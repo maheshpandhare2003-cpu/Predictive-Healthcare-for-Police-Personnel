@@ -159,7 +159,33 @@ awareness_questions = [
     "The process for accessing departmental healthcare services is straightforward.",
     "I am satisfied with the healthcare benefits offered to me as a police officer.",
     "The healthcare policies are well communicated to all personnel.",
-    "Department policies have improved my health and wellbeing."
+    "Department policies have improved my health and wellbeing.",
+    "I feel confident that the healthcare policies will support me during a health crisis.",
+    "These healthcare policies have contributed to reducing absenteeism due to health problems.",
+    "Irregular shifts and night duties negatively impact my health.",
+    "My job makes it difficult to maintain a healthy routine.",
+    "I experience significant stress due to my daily work.",
+    "My eating habits are affected by my work schedule.",
+    "I frequently suffer from fatigue or sleep disturbances.",
+    "It is challenging to find time for regular physical activity.",
+    "My family or social life is affected by my professional commitments.",
+    "My health issues are strongly linked to my daily job responsibilities.",
+    "I have access to department-approved health monitoring technology (wearables/apps).",
+    "I use technological tools to track my health metrics (e.g., steps, heart rate).",
+    "The technology provided is user-friendly and easy to integrate into my routine.",
+    "I find digital health tracking motivates me to maintain healthier habits.",
+    "Tech support from the department helps me manage my health more effectively.",
+    "I trust that my health data is secure and used responsibly.",
+    "I am satisfied with the guidance or recommendations provided by health technologies.",
+    "I believe technological interventions reduce the risk of health issues for police personnel.",
+    "I receive regular health alerts or reminders (e.g., for checkups, risk warnings).",
+    "The alerts I receive are relevant to my health risks.",
+    "I act on health recommendations provided through prediction systems.",
+    "Following these alerts has led to positive changes in my lifestyle.",
+    "The prediction system motivates me to attend regular health screenings.",
+    "I find the guidance from prediction systems understandable and actionable.",
+    "Health alerts make me more aware of potential health risks I might ignore.",
+    "I would recommend the implementation of health prediction systems department-wide."
 ]
 
 # Store responses
@@ -472,6 +498,7 @@ if 'risk_score' in locals():
         file_name=f"police_health_report_{input_data['personnel_id'].iloc[0]}.pdf",
         mime="application/pdf"
     )
+
 
 
 
