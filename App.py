@@ -159,12 +159,6 @@ awareness_questions = [
     "The process for accessing departmental healthcare services is straightforward.",
     "I am satisfied with the healthcare benefits offered to me as a police officer.",
     "The healthcare policies are well communicated to all personnel.",
-    "Department policies have improved my health and wellbeing.",
-    "I am fully aware of the healthcare policies designed for police personnel in my department.",
-    "I regularly participate in healthcare or wellness programs provided by the department.",
-    "The process for accessing departmental healthcare services is straightforward.",
-    "I am satisfied with the healthcare benefits offered to me as a police officer.",
-    "The healthcare policies are well communicated to all personnel.",
     "Department policies have improved my health and wellbeing."
 ]
 
@@ -478,6 +472,7 @@ if 'risk_score' in locals():
         file_name=f"police_health_report_{input_data['personnel_id'].iloc[0]}.pdf",
         mime="application/pdf"
     )
+
 
 
 
