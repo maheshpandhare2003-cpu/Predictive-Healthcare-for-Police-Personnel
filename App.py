@@ -121,9 +121,6 @@ with col3:
     if chronic_disease=="Other":
         chronic_disease_other = st.text_input("Please specify your chronic disease")
 
-# --- LIFESTYLE & HABITS SECTION ---
-st.subheader("🏃 Lifestyle & Habits")
-
 # --- Physical Health ---
 st.markdown("### 🏋️ Physical Health")
 col1, col2 = st.columns(2)
@@ -165,10 +162,14 @@ with col1:
     shift_pattern = st.selectbox("Shift Pattern", ["Day","Night","Rotational"])
     working_hours_per_week = st.number_input("Working hours per week", min_value=1, max_value=120)
 
-# --- Mental Health ---
-st.markdown("### 🧠 Mental Health")
+# --- MENTAL HEALTH SECTION ---
+st.markdown("### 🧠 Mental Health & Wellbeing")
+st.markdown(
+    "<div style='background: linear-gradient(135deg, #C8E6C9, #81C784); padding:15px; border-radius:10px;'>",
+    unsafe_allow_html=True
+)
 
-# Auto-calculate stress level dynamically
+# --- Auto-calculate Stress Level ---
 stress_calc = 5  # base
 # Sleep factor
 if sleep_hours < 6:
@@ -199,8 +200,42 @@ if shift_pattern.lower() in ["night", "rotational"]:
 # Clip to 1-10
 stress_level = int(np.clip(stress_calc, 1, 10))
 
-# Display to user (disabled slider)
-st.slider("Stress Level (calculated automatically based on your inputs)", min_value=1, max_value=10, value=stress_level, disabled=True)
+# Display stress slider (read-only)
+st.slider(
+    "Stress Level (calculated automatically based on your inputs)",
+    min_value=1, max_value=10, value=stress_level, disabled=True
+)
+
+# --- Mood Selector ---
+mood = st.selectbox(
+    "How do you feel today?",
+    ["😊 Happy", "😐 Neutral", "😔 Sad", "😟 Stressed", "😡 Angry"]
+)
+
+# --- Mindfulness / Meditation ---
+mindfulness = st.slider("Minutes of Mindfulness / Meditation today", 0, 60, 0)
+
+# --- Stress Visualization ---
+stress_percentage = int((stress_level / 10) * 100)
+color = "#00C853" if stress_level <= 4 else "#FFA000" if stress_level <= 7 else "#D32F2F"
+st.progress(stress_percentage, text=f"Stress Level: {stress_level}/10")
+st.markdown(f"<span style='color:{color}; font-weight:bold'>Stress Score Visual</span>", unsafe_allow_html=True)
+
+# --- Tips / Suggestions ---
+if stress_level >= 7:
+    st.warning("⚠ High stress detected! Consider taking a short walk, meditation, or talking to a colleague.")
+elif stress_level >= 4:
+    st.info("ℹ Moderate stress: Keep up regular exercise, adequate sleep, and hydration.")
+else:
+    st.success("✅ Low stress! Keep maintaining your healthy routine.")
+
+# --- Daily Journaling ---
+mental_notes = st.text_area(
+    "Write a note about your mental wellbeing today (optional):",
+    placeholder="Reflect on your mood, stress, and activities..."
+)
+
+st.markdown("</div>", unsafe_allow_html=True)
 
 # --- Technology & System Usage ---
 st.markdown("### 💻 Technology & System Usage")
@@ -269,6 +304,7 @@ if st.button("Predict My Risk & Recommendations"):
         color = "#00C853" if risk_category=="✅ Normal" else "#FFA000" if risk_category=="⚠ Borderline" else "#D32F2F"
         st.markdown(f"<h2 style='color:{color}'>Risk Score: {risk_score:.1f}</h2>", unsafe_allow_html=True)
         st.markdown(f"<h3 style='color:{color}'>Risk Category: {risk_category}</h3>", unsafe_allow_html=True)
+
 
 
 
