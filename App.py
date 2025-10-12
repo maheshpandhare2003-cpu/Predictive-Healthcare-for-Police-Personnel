@@ -17,81 +17,6 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- Modern Functional Menu Bar with Smooth Scroll ---
-st.markdown("""
-<style>
-.navbar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    background: linear-gradient(90deg, #0F2027, #203A43, #2C5364);
-    box-shadow: 0 2px 10px rgba(0,0,0,0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
-    padding: 0.6rem 1rem;
-}
-
-/* Menu Buttons */
-.navbar button {
-    background: transparent;
-    border: none;
-    color: #E0F7FA;
-    font-size: 16px;
-    font-weight: 500;
-    margin: 0 1.2rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    position: relative;
-}
-
-.navbar button:hover {
-    color: #00E5FF;
-}
-
-.navbar button::after {
-    content: "";
-    position: absolute;
-    width: 0%;
-    height: 2px;
-    bottom: -3px;
-    left: 0;
-    background-color: #00E5FF;
-    transition: width 0.3s;
-}
-
-.navbar button:hover::after {
-    width: 100%;
-}
-
-.stApp {
-    padding-top: 60px;
-}
-</style>
-
-<!-- Navbar with JS scroll -->
-<div class="navbar">
-    <button onclick="scrollToSection('header')">🏠 Home</button>
-    <button onclick="scrollToSection('demographics')">👤 Demographics</button>
-    <button onclick="scrollToSection('vitals')">❤️ Vital Signs</button>
-    <button onclick="scrollToSection('lifestyle')">💪 Lifestyle</button>
-    <button onclick="scrollToSection('awareness')">🧠 Awareness</button>
-    <button onclick="scrollToSection('results')">📊 Risk Report</button>
-    <button onclick="scrollToSection('download')">📥 Report</button>
-</div>
-
-<script>
-function scrollToSection(sectionId) {
-    const section = window.parent.document.querySelector(`[id='${sectionId}']`);
-    if (section) {
-        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-}
-</script>
-""", unsafe_allow_html=True)
-
 # --- Background with Black-Blue Gradient Overlay ---
 import base64
 
@@ -693,6 +618,7 @@ if st.button("Predict My Risk & Recommendations"):
     
     
     
+
 
 
 
