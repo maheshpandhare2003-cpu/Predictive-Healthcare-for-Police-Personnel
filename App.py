@@ -188,7 +188,7 @@ st.markdown(f"""
 <div class='app-header'>
     <img src='data:image/png;base64,{encoded_logo}' alt='Police Logo'>
     <h1>Predictive Healthcare for Police Personnel</h1>
-    <p>Get your personalized risk assessment and preventive suggestions</p>
+    # <p>Get your personalized risk assessment and preventive suggestions</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -697,6 +697,7 @@ if st.button("Predict My Risk & Recommendations"):
     
     
     
+
 
 
 
