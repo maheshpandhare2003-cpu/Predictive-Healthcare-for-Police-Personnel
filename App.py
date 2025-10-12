@@ -348,17 +348,17 @@ if st.button("Predict My Risk & Recommendations"):
      if risk_score<40: risk_category="✅ Normal"
      elif risk_score<70: risk_category="⚠ Borderline"
      else: risk_category="❌ High Risk"
-        # --- STYLISH RISK SCORE & CATEGORY ---
+    # --- STYLISH RISK SCORE & CATEGORY WITH BLACK GRADIENT ---
      color = "#00C853" if risk_category=="✅ Normal" else "#FFA000" if risk_category=="⚠ Borderline" else "#D32F2F"
-     glow_color = "#00C853" if risk_category=="✅ Normal" else "#FFA000" if risk_category=="⚠ Borderline" else "#D32F2F"
      
      st.markdown(f"""
      <style>
      @keyframes pulseGlow {{
-         0% {{ text-shadow: 0 0 10px {glow_color}; }}
-         50% {{ text-shadow: 0 0 25px rgba(255,255,255,0.6); }}
-         100% {{ text-shadow: 0 0 10px {glow_color}; }}
+         0% {{ text-shadow: 0 0 10px {color}; }}
+         50% {{ text-shadow: 0 0 20px rgba(0,0,0,0.5); }}
+         100% {{ text-shadow: 0 0 10px {color}; }}
      }}
+     
      .risk-box {{
          text-align: center;
          padding: 20px;
@@ -370,17 +370,23 @@ if st.button("Predict My Risk & Recommendations"):
          margin-top: 20px;
          box-shadow: 0 4px 20px rgba(0,0,0,0.6);
      }}
+     
      .risk-score {{
          font-size: 2.5em;
          font-weight: 700;
-         color: {color};
-         text-shadow: 0 0 15px {color};
+         background: linear-gradient(45deg, black, {color});
+         -webkit-background-clip: text;
+         -webkit-text-fill-color: transparent;
+         text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
      }}
+     
      .risk-category {{
          font-size: 1.8em;
          font-weight: 600;
-         color: {color};
-         text-shadow: 0 0 10px {color};
+         background: linear-gradient(45deg, black, {color});
+         -webkit-background-clip: text;
+         -webkit-text-fill-color: transparent;
+         text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
      }}
      </style>
      
@@ -389,6 +395,7 @@ if st.button("Predict My Risk & Recommendations"):
          <div class="risk-category">Risk Category: {risk_category}</div>
      </div>
      """, unsafe_allow_html=True)
+
      
 
 
