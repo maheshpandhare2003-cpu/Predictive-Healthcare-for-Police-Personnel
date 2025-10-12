@@ -128,7 +128,11 @@ st.markdown(page_bg_img, unsafe_allow_html=True)
 # --- HEADER SECTION ---
 with open("—Pngtree—gold police officer badge_7258551.png", "rb") as img_file:
     encoded_logo = base64.b64encode(img_file.read()).decode()
-
+# --- Home Section ---
+st.markdown("<div id='header'></div>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align:center; color:#E0F7FA;'>Predictive Healthcare for Police Personnel</h1>", unsafe_allow_html=True)
+st.markdown("<h4 style='text-align:center; color:#80DEEA;'>Get your personalized risk assessment and preventive suggestions</h4>", unsafe_allow_html=True)
+st.markdown("---")
 st.markdown(f"""
 <style>
 @keyframes gradientShift {{
@@ -184,7 +188,8 @@ xgb_model = joblib.load("xgb_model.pkl")
 
 # --- DEMOGRAPHICS SECTION ---
 st.markdown("<div id='demographics'></div>", unsafe_allow_html=True)
-st.subheader("👤 Demographics")
+st.subheader("👤 Demographics Information")
+# Your demographic input fields go here
 col1, col2, col3 = st.columns(3)
 with col1:
     personnel_id = st.number_input("Personnel ID", min_value=1, step=1)
@@ -204,6 +209,7 @@ bmi = round(weight_kg / ((height_cm/100)**2),1)
 st.text_input("BMI", value=bmi, disabled=True)
 
 # --- HEALTHCARE SCHEME SECTION ---
+# --- Awareness Section ---
 st.markdown("<div id='awareness'></div>", unsafe_allow_html=True)
 st.subheader("🏥 Healthcare Scheme & Awareness Programs")
 col1, col2 = st.columns(2)
@@ -216,8 +222,9 @@ with col2:
 st.info("Healthcare Scheme is used for Survey & Analysis Purpose . Wellness program is just informative only.")
 
 # --- VITAL SIGNS SECTION ---
-st.markdown("<div id='#vitals'></div>", unsafe_allow_html=True)
+st.markdown("<div id='vitals'></div>", unsafe_allow_html=True)
 st.subheader("❤️ Vital Signs")
+# Add all vital sign inputs here
 col1, col2, col3 = st.columns(3)
 with col1:
     systolic_bp = st.number_input("Systolic BP (mmHg) [90-180]", min_value=90, max_value=180)
@@ -233,7 +240,9 @@ with col3:
         chronic_disease_other = st.text_input("Please specify your chronic disease")
 
 # --- Physical Health ---
+# --- Lifestyle Section ---
 st.markdown("<div id='lifestyle'></div>", unsafe_allow_html=True)
+# Add exercise, sleep, stress, etc. inputs here
 st.markdown("### 🏋️ Physical Health")
 col1, col2 = st.columns(2)
 with col1:
@@ -404,6 +413,7 @@ div.stButton > button:first-child:active {{
 """, unsafe_allow_html=True)
 
 # --- REAL STREAMLIT BUTTON ---
+st.markdown("<div id='results'></div>", unsafe_allow_html=True)
 if st.button("Predict My Risk & Recommendations"):
     # --- Your existing prediction logic ---
     with st.spinner("Calculating your risk score..."):
@@ -463,7 +473,6 @@ if st.button("Predict My Risk & Recommendations"):
     # --- STYLISH RISK SCORE & CATEGORY WITH BLACK GRADIENT ---
     # --- RISK SCORE & CATEGORY STYLISH AND DYNAMIC ---
      color = "#EBEBEB" if risk_category=="✅ Normal" else "#FFA000" if risk_category=="⚠ Borderline" else "#D32F2F"
-     st.markdown("<div id='results'></div>", unsafe_allow_html=True)
      st.markdown(f"""
      <style>
      @keyframes gradientText {{
@@ -663,7 +672,9 @@ if st.button("Predict My Risk & Recommendations"):
          </style>
      """, unsafe_allow_html=True)
      
-    
+          # --- Download Section ---
+     st.markdown("<div id='download'></div>", unsafe_allow_html=True)
+     # Place your styled st.download_button() code here
      st.download_button(
         label="📥 Download PDF Report",
         data=buffer,
