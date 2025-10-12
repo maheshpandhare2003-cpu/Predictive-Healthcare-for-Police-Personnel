@@ -103,7 +103,7 @@ with col1:
         healthcare_scheme_other = st.text_input("Specify Healthcare Scheme")
 with col2:
     wellness_program = st.radio("Wellness Programs Provided by Department?", ["Yes","No","Sometimes"])
-st.info("Healthcare Scheme is used in prediction. Wellness program info is informative only.")
+st.info("Healthcare Scheme is used for Survey Purpose . Wellness program info is just informative only.")
 
 # --- VITAL SIGNS SECTION ---
 st.subheader("❤️ Vital Signs")
@@ -140,11 +140,23 @@ if exercise_mins_per_week>0:
     )
 
 # --- Diet Quality ---
-st.markdown("### 🥗 Diet Quality")
-meal = st.multiselect("Meals you take regularly", ["Breakfast","Lunch","Dinner"])
-diet_protein = st.selectbox("Protein requirement met?", ["Not Completed","Partially Completed","Completed"])
-diet_vitamins = st.selectbox("Vitamins requirement met?", ["Not Completed","Partially Completed","Completed"])
-diet_carbs = st.selectbox("Carbohydrates requirement met?", ["Not Completed","Partially Completed","Completed"])
+# --- Diet Quality Section ---
+st.markdown("### 🥗 Diet Quality & Nutrition")
+
+# Meals taken
+meal = st.multiselect("Meals you take regularly", ["Breakfast", "Lunch", "Dinner"])
+
+# Macro/Micronutrients completion
+diet_protein = st.selectbox("Protein requirement met?", ["Not Completed", "Partially Completed", "Completed"])
+diet_vitamins = st.selectbox("Vitamins requirement met?", ["Not Completed", "Partially Completed", "Completed"])
+diet_carbs = st.selectbox("Carbohydrates requirement met?", ["Not Completed", "Partially Completed", "Completed"])
+diet_minerals = st.selectbox("Minerals requirement met?", ["Not Completed", "Partially Completed", "Completed"])
+
+# Water Intake
+water_intake_liters = st.number_input("Daily Water Intake (Liters)", min_value=0.0, max_value=10.0, step=0.1)
+
+# Optional info tooltip
+st.info("Provide accurate values to get better personalized recommendations.")
 
 # --- Occupational Health ---
 st.markdown("### 💼 Occupational Health")
@@ -257,5 +269,6 @@ if st.button("Predict My Risk & Recommendations"):
         color = "#00C853" if risk_category=="✅ Normal" else "#FFA000" if risk_category=="⚠ Borderline" else "#D32F2F"
         st.markdown(f"<h2 style='color:{color}'>Risk Score: {risk_score:.1f}</h2>", unsafe_allow_html=True)
         st.markdown(f"<h3 style='color:{color}'>Risk Category: {risk_category}</h3>", unsafe_allow_html=True)
+
 
 
