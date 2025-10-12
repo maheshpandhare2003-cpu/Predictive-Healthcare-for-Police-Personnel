@@ -103,6 +103,34 @@ with col3:
 bmi = round(weight_kg / ((height_cm/100)**2), 1)
 st.text_input("BMI", value=bmi, disabled=True)
 
+st.subheader("🏥 Healthcare Scheme")
+
+col1, col2 = st.columns(2)
+
+with col1:
+    # Existing dataset schemes + 'Other' option
+    healthcare_scheme = st.selectbox("Select Your Healthcare Scheme", df['healthcare_scheme'].unique())
+    if healthcare_scheme == "Other":
+        healthcare_scheme_other = st.text_input("Please specify your Healthcare Scheme")
+
+with col2:
+    wellness_program = st.radio(
+        "Has the department provided any Wellness Programs?",
+        ["Yes", "No", "Sometimes"]
+    )
+
+# Add to input_data dictionary for prediction
+# Only healthcare_scheme is predictive factor, wellness_program is just info
+input_data['healthcare_scheme'] = (
+    healthcare_scheme if healthcare_scheme != "Other" else healthcare_scheme_other
+)
+
+# Optional: Display info to user
+st.info(
+    "Your selected healthcare scheme will be used for Survey Purpose. "
+    "Wellness program participation is for information purposes only."
+)
+
 st.subheader("❤️ Vital Signs")
 
 st.markdown("<div id='vital'></div>", unsafe_allow_html=True)
@@ -504,6 +532,7 @@ if 'risk_score' in locals():
         file_name=f"police_health_report_{input_data['personnel_id'].iloc[0]}.pdf",
         mime="application/pdf"
     )
+
 
 
 
