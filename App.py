@@ -140,10 +140,6 @@ st.markdown(page_bg_img, unsafe_allow_html=True)
 with open("—Pngtree—gold police officer badge_7258551.png", "rb") as img_file:
     encoded_logo = base64.b64encode(img_file.read()).decode()
 # --- Home Section ---
-st.markdown("<div id='header'></div>", unsafe_allow_html=True)
-st.markdown("<h1 style='text-align:center; color:#E0F7FA;'>Predictive Healthcare for Police Personnel</h1>", unsafe_allow_html=True)
-st.markdown("<h4 style='text-align:center; color:#80DEEA;'>Get your personalized risk assessment and preventive suggestions</h4>", unsafe_allow_html=True)
-st.markdown("---")
 st.markdown(f"""
 <style>
 @keyframes gradientShift {{
@@ -187,8 +183,9 @@ st.markdown(f"""
 </style>
 <div class='app-header'>
     <img src='data:image/png;base64,{encoded_logo}' alt='Police Logo'>
+    st.markdown("<div id='header'></div>", unsafe_allow_html=True)
     <h1>Predictive Healthcare for Police Personnel</h1>
-    # <p>Get your personalized risk assessment and preventive suggestions</p>
+    <p>Get your personalized risk assessment and preventive suggestions</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -697,6 +694,7 @@ if st.button("Predict My Risk & Recommendations"):
     
     
     
+
 
 
 
