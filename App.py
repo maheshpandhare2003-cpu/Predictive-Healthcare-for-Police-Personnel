@@ -267,7 +267,6 @@ div.stButton > button:first-child:active {
 if st.button("Predict My Risk & Recommendations"):
     # --- Your existing prediction logic ---
     with st.spinner("Calculating your risk score..."):
-        pass  # prediction code here
         # Prepare input data dictionary
      input_data = pd.DataFrame({
             'personnel_id':[personnel_id],
@@ -458,7 +457,6 @@ if st.button("Predict My Risk & Recommendations"):
     
     
     
-
 
 
 
