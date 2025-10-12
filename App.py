@@ -240,29 +240,37 @@ if tech_usage_yesno=="Yes":
 st.markdown("""
 <style>
 div.stButton > button:first-child {
-    background: linear-gradient(90deg, #2196F3, #21CBF3, #00E676);
-    color: white;
     font-size: 18px;
-    font-weight: bold;
-    padding: 12px 25px;
-    border-radius: 12px;
+    font-weight: 700;  /* bold font */
+    padding: 15px 30px;
+    border-radius: 15px;
     border: none;
+    color: white;
     cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    background: linear-gradient(135deg, #0F2027, #203A43, #2C5364);
+    background-size: 300% 300%;
+    animation: gradientShiftBtn 5s ease infinite;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
+
 div.stButton > button:first-child:hover {
-    background: linear-gradient(90deg, #00E676, #21CBF3, #2196F3);
     transform: scale(1.05);
-    box-shadow: 0 6px 25px rgba(0,0,0,0.5);
+    box-shadow: 0 0 25px rgba(0,191,255,0.9);
 }
+
 div.stButton > button:first-child:active {
     transform: scale(0.98);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    box-shadow: 0 0 15px rgba(0,191,255,0.7);
+}
+
+@keyframes gradientShiftBtn {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
 </style>
 """, unsafe_allow_html=True)
-
 # --- REAL STREAMLIT BUTTON ---
 if st.button("Predict My Risk & Recommendations"):
     # --- Your existing prediction logic ---
