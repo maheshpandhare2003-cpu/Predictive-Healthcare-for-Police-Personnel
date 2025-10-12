@@ -566,6 +566,34 @@ if st.button("Predict My Risk & Recommendations"):
     # Build PDF
      pdf.build(elements)
      buffer.seek(0)
+
+     # --- Styled Download Button ---
+     st.markdown("""
+         <style>
+         div.stDownloadButton > button {
+             background: linear-gradient(90deg, #0F2027, #203A43, #2C5364);
+             color: #E0F7FA;
+             border: none;
+             border-radius: 12px;
+             padding: 0.7em 1.5em;
+             font-weight: 600;
+             font-size: 16px;
+             letter-spacing: 0.5px;
+             box-shadow: 0 0 12px rgba(0, 200, 255, 0.3);
+             transition: all 0.3s ease-in-out;
+         }
+         div.stDownloadButton > button:hover {
+             background: linear-gradient(90deg, #2C5364, #203A43, #0F2027);
+             box-shadow: 0 0 20px rgba(0, 200, 255, 0.6);
+             transform: scale(1.05);
+         }
+         div.stDownloadButton > button:active {
+             transform: scale(0.98);
+             box-shadow: 0 0 8px rgba(0, 200, 255, 0.4);
+         }
+         </style>
+     """, unsafe_allow_html=True)
+     
     
      st.download_button(
         label="📥 Download PDF Report",
@@ -578,6 +606,7 @@ if st.button("Predict My Risk & Recommendations"):
     
     
     
+
 
 
 
