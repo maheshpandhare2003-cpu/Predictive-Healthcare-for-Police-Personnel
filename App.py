@@ -164,11 +164,6 @@ with col1:
 
 # --- MENTAL HEALTH SECTION ---
 st.markdown("### 🧠 Mental Health & Wellbeing")
-st.markdown(
-    "<div style='background: linear-gradient(135deg, #C8E6C9, #81C784); padding:15px; border-radius:10px;'>",
-    unsafe_allow_html=True
-)
-
 # --- Auto-calculate Stress Level ---
 stress_calc = 5  # base
 # Sleep factor
@@ -299,6 +294,7 @@ if st.button("Predict My Risk & Recommendations"):
         color = "#00C853" if risk_category=="✅ Normal" else "#FFA000" if risk_category=="⚠ Borderline" else "#D32F2F"
         st.markdown(f"<h2 style='color:{color}'>Risk Score: {risk_score:.1f}</h2>", unsafe_allow_html=True)
         st.markdown(f"<h3 style='color:{color}'>Risk Category: {risk_category}</h3>", unsafe_allow_html=True)
+
 
 
 
