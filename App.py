@@ -95,7 +95,7 @@ bmi = round(weight_kg / ((height_cm/100)**2),1)
 st.text_input("BMI", value=bmi, disabled=True)
 
 # --- HEALTHCARE SCHEME SECTION ---
-st.subheader("🏥 Healthcare Scheme & Department Programs")
+st.subheader("🏥 Healthcare Scheme & Awareness Programs")
 col1, col2 = st.columns(2)
 with col1:
     healthcare_scheme = st.selectbox("Select Your Healthcare Scheme", df['healthcare_scheme'].unique())
@@ -103,7 +103,7 @@ with col1:
         healthcare_scheme_other = st.text_input("Specify Healthcare Scheme")
 with col2:
     wellness_program = st.radio("Wellness Programs Provided by Department?", ["Yes","No","Sometimes"])
-st.info("Healthcare Scheme is used for Survey Purpose . Wellness program info is just informative only.")
+st.info("Healthcare Scheme is used for Survey & Analysis Purpose . Wellness program is just informative only.")
 
 # --- VITAL SIGNS SECTION ---
 st.subheader("❤️ Vital Signs")
@@ -203,7 +203,7 @@ mood = st.selectbox(
 )
 
 # --- Mindfulness / Meditation ---
-mindfulness = st.slider("Minutes of Mindfulness / Meditation today", 0, 60, 0)
+mindfulness = st.slider("Minutes of Mindfulness / Meditation Everyday", 0, 60, 0)
 
 # --- Stress Visualization ---
 stress_percentage = int((stress_level / 10) * 100)
@@ -221,15 +221,15 @@ else:
 
 # --- Daily Journaling ---
 mental_notes = st.text_area(
-    "Write a note about your mental wellbeing today (optional):",
-    placeholder="Reflect on your mood, stress, and activities..."
+    "Write a note about your mental wellbeing Issues if you have in Your Services (optional):",
+    placeholder="Reflect on your workload, stress,duties and work activities..."
 )
 
 st.markdown("</div>", unsafe_allow_html=True)
 
 # --- Technology & System Usage ---
 st.markdown("### 💻 Technology & System Usage")
-tech_usage_yesno = st.radio("Do you use technology for health tracking?", ["Yes","No"])
+tech_usage_yesno = st.radio("Do you use technology Apps or Devices for health tracking?", ["Yes","No"])
 tech_level = None
 if tech_usage_yesno=="Yes":
     tech_level = st.radio("Level of usage", ["High","Medium","Low"])
@@ -400,10 +400,7 @@ if st.button("Predict My Risk & Recommendations"):
      </div>
      """, unsafe_allow_html=True)
 
-
      
-
-
     # --- FEATURE IMPORTANCE ---
      st.subheader("📊 Top Factors Impacting Risk")
      importance = xgb_model.feature_importances_
@@ -537,6 +534,7 @@ if st.button("Predict My Risk & Recommendations"):
     
     
     
+
 
 
 
