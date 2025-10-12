@@ -155,9 +155,40 @@ with col1:
 
 # --- Mental Health ---
 st.markdown("### 🧠 Mental Health")
-# Auto-calculate stress level (simple example)
-stress_level = int(np.clip((10 - sleep_hours/2 + working_hours_per_week/10 + (0 if exercise_mins_per_week>0 else 2)),1,10))
-st.slider("Stress Level (calculated based on your inputs)", min_value=1, max_value=10, value=stress_level, disabled=True)
+
+# Auto-calculate stress level dynamically
+stress_calc = 5  # base
+# Sleep factor
+if sleep_hours < 6:
+    stress_calc += 3
+elif sleep_hours < 7:
+    stress_calc += 2
+elif sleep_hours < 8:
+    stress_calc += 1
+
+# Working hours factor
+if working_hours_per_week > 60:
+    stress_calc += 3
+elif working_hours_per_week > 50:
+    stress_calc += 2
+elif working_hours_per_week > 40:
+    stress_calc += 1
+
+# Exercise factor
+if exercise_mins_per_week == 0:
+    stress_calc += 2
+elif exercise_mins_per_week < 60:
+    stress_calc += 1
+
+# Shift pattern factor
+if shift_pattern.lower() in ["night", "rotational"]:
+    stress_calc += 2
+
+# Clip to 1-10
+stress_level = int(np.clip(stress_calc, 1, 10))
+
+# Display to user (disabled slider)
+st.slider("Stress Level (calculated automatically based on your inputs)", min_value=1, max_value=10, value=stress_level, disabled=True)
 
 # --- Technology & System Usage ---
 st.markdown("### 💻 Technology & System Usage")
@@ -226,4 +257,5 @@ if st.button("Predict My Risk & Recommendations"):
         color = "#00C853" if risk_category=="✅ Normal" else "#FFA000" if risk_category=="⚠ Borderline" else "#D32F2F"
         st.markdown(f"<h2 style='color:{color}'>Risk Score: {risk_score:.1f}</h2>", unsafe_allow_html=True)
         st.markdown(f"<h3 style='color:{color}'>Risk Category: {risk_category}</h3>", unsafe_allow_html=True)
+
 
