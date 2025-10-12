@@ -342,94 +342,95 @@ if st.button("Predict My Risk & Recommendations"):
 # Display all recommendations
          for rec in recommendations:
           st.success(rec)
-
-import numpy as np
-from reportlab.lib.pagesizes import A4
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib import colors
-import io
-import datetime
-
-st.subheader("📄 Download PDF Report")
-
-buffer = io.BytesIO()
-pdf = SimpleDocTemplate(
-    buffer,
-    pagesize=A4,
-    rightMargin=30, leftMargin=30,
-    topMargin=30, bottomMargin=30
-)
-elements = []
-styles = getSampleStyleSheet()
-styles.add(ParagraphStyle(name='HeadingLarge', fontSize=16, leading=20, spaceAfter=10, alignment=1, fontName='Helvetica-Bold'))
-styles.add(ParagraphStyle(name='SubHeading', fontSize=14, leading=18, spaceAfter=8, fontName='Helvetica-Bold'))
-styles.add(ParagraphStyle(name='NormalText', fontSize=12, leading=16, fontName='Helvetica'))
-styles.add(ParagraphStyle(name='FooterText', fontSize=10, leading=12, alignment=1, textColor=colors.grey))
-
-# Logo
-try:
-    logo = Image("—Pngtree—gold police officer badge_7258551.png", width=60, height=60)
-    logo.hAlign = 'CENTER'
-    elements.append(logo)
-    elements.append(Spacer(1,8))
-except:
-    pass
-
-# Title
-elements.append(Paragraph("Predictive Healthcare Report", styles['HeadingLarge']))
-elements.append(Spacer(1,12))
-
-# Personnel Info
-elements.append(Paragraph("Personnel Information", styles['SubHeading']))
-data = [[col, str(input_data[col].iloc[0])] for col in input_data.columns]
-table = Table(data, colWidths=[150, 350])
-table.setStyle(TableStyle([
-    ('BACKGROUND',(0,0),(-1,0),colors.lightgrey),
-    ('GRID',(0,0),(-1,-1),0.5,colors.black),
-    ('FONTNAME',(0,0),(-1,-1),'Helvetica'),
-    ('FONTSIZE',(0,0),(-1,-1),10),
-    ('VALIGN',(0,0),(-1,-1),'MIDDLE'),
-]))
-elements.append(table)
-elements.append(Spacer(1,12))
-
-# Risk Assessment
-elements.append(Paragraph("Risk Assessment", styles['SubHeading']))
-risk_color = colors.green if risk_category=="✅ Normal" else colors.orange if risk_category=="⚠ Borderline" else colors.red
-elements.append(Paragraph(f"Risk Score: {risk_score:.1f}", ParagraphStyle('RiskScore', textColor=risk_color, fontSize=12, leading=16)))
-elements.append(Paragraph(f"Risk Category: {risk_category}", ParagraphStyle('RiskCat', textColor=risk_color, fontSize=12, leading=16)))
-elements.append(Spacer(1,12))
-
-# Top Features
-elements.append(Paragraph("Top Factors Impacting Risk", styles['SubHeading']))
-for i in top_indices[:5]:
-    elements.append(Paragraph(f"{feature_names[i]} (Importance: {xgb_model.feature_importances_[i]:.2f})", styles['NormalText']))
-elements.append(Spacer(1,12))
-
-# Recommendations
-elements.append(Paragraph("Personalized Recommendations", styles['SubHeading']))
-for rec in recommendations:
-    elements.append(Paragraph(f"• {rec}", styles['NormalText']))
-elements.append(Spacer(1,12))
-
-# Footer
-footer_text = f"Generated from Police Personnel Healthcare | Developed by Your Name | Report Date: {datetime.datetime.now().strftime('%d-%m-%Y %H:%M:%S')}"
-elements.append(Paragraph(footer_text, styles['FooterText']))
-
-# Build PDF
-pdf.build(elements)
-buffer.seek(0)
-
-st.download_button(
-    label="📥 Download PDF Report",
-    data=buffer,
-    file_name=f"police_health_report_{input_data['personnel_id'].iloc[0]}.pdf",
-    mime="application/pdf"
-)
-
-
-
-
+        
+        import numpy as np
+        from reportlab.lib.pagesizes import A4
+        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.lib import colors
+        import io
+        import datetime
+        
+        st.subheader("📄 Download PDF Report")
+        
+        buffer = io.BytesIO()
+        pdf = SimpleDocTemplate(
+            buffer,
+            pagesize=A4,
+            rightMargin=30, leftMargin=30,
+            topMargin=30, bottomMargin=30
+        )
+        elements = []
+        styles = getSampleStyleSheet()
+        styles.add(ParagraphStyle(name='HeadingLarge', fontSize=16, leading=20, spaceAfter=10, alignment=1, fontName='Helvetica-Bold'))
+        styles.add(ParagraphStyle(name='SubHeading', fontSize=14, leading=18, spaceAfter=8, fontName='Helvetica-Bold'))
+        styles.add(ParagraphStyle(name='NormalText', fontSize=12, leading=16, fontName='Helvetica'))
+        styles.add(ParagraphStyle(name='FooterText', fontSize=10, leading=12, alignment=1, textColor=colors.grey))
+        
+        # Logo
+        try:
+            logo = Image("—Pngtree—gold police officer badge_7258551.png", width=60, height=60)
+            logo.hAlign = 'CENTER'
+            elements.append(logo)
+            elements.append(Spacer(1,8))
+        except:
+            pass
+        
+        # Title
+        elements.append(Paragraph("Predictive Healthcare Report", styles['HeadingLarge']))
+        elements.append(Spacer(1,12))
+        
+        # Personnel Info
+        elements.append(Paragraph("Personnel Information", styles['SubHeading']))
+        data = [[col, str(input_data[col].iloc[0])] for col in input_data.columns]
+        table = Table(data, colWidths=[150, 350])
+        table.setStyle(TableStyle([
+            ('BACKGROUND',(0,0),(-1,0),colors.lightgrey),
+            ('GRID',(0,0),(-1,-1),0.5,colors.black),
+            ('FONTNAME',(0,0),(-1,-1),'Helvetica'),
+            ('FONTSIZE',(0,0),(-1,-1),10),
+            ('VALIGN',(0,0),(-1,-1),'MIDDLE'),
+        ]))
+        elements.append(table)
+        elements.append(Spacer(1,12))
+        
+        # Risk Assessment
+        elements.append(Paragraph("Risk Assessment", styles['SubHeading']))
+        risk_color = colors.green if risk_category=="✅ Normal" else colors.orange if risk_category=="⚠ Borderline" else colors.red
+        elements.append(Paragraph(f"Risk Score: {risk_score:.1f}", ParagraphStyle('RiskScore', textColor=risk_color, fontSize=12, leading=16)))
+        elements.append(Paragraph(f"Risk Category: {risk_category}", ParagraphStyle('RiskCat', textColor=risk_color, fontSize=12, leading=16)))
+        elements.append(Spacer(1,12))
+        
+        # Top Features
+        elements.append(Paragraph("Top Factors Impacting Risk", styles['SubHeading']))
+        for i in top_indices[:5]:
+            elements.append(Paragraph(f"{feature_names[i]} (Importance: {xgb_model.feature_importances_[i]:.2f})", styles['NormalText']))
+        elements.append(Spacer(1,12))
+        
+        # Recommendations
+        elements.append(Paragraph("Personalized Recommendations", styles['SubHeading']))
+        for rec in recommendations:
+            elements.append(Paragraph(f"• {rec}", styles['NormalText']))
+        elements.append(Spacer(1,12))
+        
+        # Footer
+        footer_text = f"Generated from Police Personnel Healthcare | Developed by Your Name | Report Date: {datetime.datetime.now().strftime('%d-%m-%Y %H:%M:%S')}"
+        elements.append(Paragraph(footer_text, styles['FooterText']))
+        
+        # Build PDF
+        pdf.build(elements)
+        buffer.seek(0)
+        
+        st.download_button(
+            label="📥 Download PDF Report",
+            data=buffer,
+            file_name=f"police_health_report_{input_data['personnel_id'].iloc[0]}.pdf",
+            mime="application/pdf"
+        )
+        
+        
+        
+        
+        
 
 
