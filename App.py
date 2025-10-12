@@ -95,8 +95,8 @@ import pandas as pd
 # Load dataset for dropdowns
 df = pd.read_csv("police_health_dataset.csv")
 
-st.markdown("<div id='demographics'></div>", unsafe_allow_html=True)
 st.subheader("👤 Demographics")
+st.markdown("<div id='demographics'></div>", unsafe_allow_html=True)
 
 col1, col2, col3 = st.columns(3)
 
@@ -521,6 +521,7 @@ if 'risk_score' in locals():
         file_name=f"police_health_report_{input_data['personnel_id'].iloc[0]}.pdf",
         mime="application/pdf"
     )
+
 
 
 
