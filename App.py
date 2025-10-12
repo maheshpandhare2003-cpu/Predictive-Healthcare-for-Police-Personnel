@@ -349,44 +349,48 @@ if st.button("Predict My Risk & Recommendations"):
      elif risk_score<70: risk_category="⚠ Borderline"
      else: risk_category="❌ High Risk"
     # --- STYLISH RISK SCORE & CATEGORY WITH BLACK GRADIENT ---
+    # --- RISK SCORE & CATEGORY STYLISH AND DYNAMIC ---
      color = "#00C853" if risk_category=="✅ Normal" else "#FFA000" if risk_category=="⚠ Borderline" else "#D32F2F"
      
      st.markdown(f"""
      <style>
-     @keyframes pulseGlow {{
-         0% {{ text-shadow: 0 0 10px {color}; }}
-         50% {{ text-shadow: 0 0 20px rgba(0,0,0,0.5); }}
-         100% {{ text-shadow: 0 0 10px {color}; }}
+     @keyframes gradientText {{
+         0% {{ background-position: 0% 50%; }}
+         50% {{ background-position: 100% 50%; }}
+         100% {{ background-position: 0% 50%; }}
      }}
      
      .risk-box {{
          text-align: center;
-         padding: 20px;
-         border-radius: 15px;
+         padding: 25px;
+         border-radius: 20px;
          background: linear-gradient(135deg, #0F2027, #203A43, #2C5364);
          background-size: 300% 300%;
-         animation: gradientShift 10s ease infinite, pulseGlow 2s infinite;
-         color: white;
+         animation: gradientShift 10s ease infinite;
+         box-shadow: 0 6px 25px rgba(0,0,0,0.6);
          margin-top: 20px;
-         box-shadow: 0 4px 20px rgba(0,0,0,0.6);
      }}
      
      .risk-score {{
-         font-size: 2.5em;
-         font-weight: 700;
-         background: linear-gradient(45deg, black, {color});
+         font-size: 3em;
+         font-weight: 800;
+         background: linear-gradient(90deg, #00ffea, #00C853, #00ffea);
+         background-size: 200% 200%;
          -webkit-background-clip: text;
          -webkit-text-fill-color: transparent;
-         text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+         animation: gradientText 4s ease infinite;
+         text-shadow: 0 0 15px rgba(0,255,234,0.6);
      }}
      
      .risk-category {{
-         font-size: 1.8em;
-         font-weight: 600;
-         background: linear-gradient(45deg, black, {color});
+         font-size: 2em;
+         font-weight: 700;
+         background: linear-gradient(90deg, #FFEA00, #FFA000, #FFEA00);
+         background-size: 200% 200%;
          -webkit-background-clip: text;
          -webkit-text-fill-color: transparent;
-         text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+         animation: gradientText 4s ease infinite;
+         text-shadow: 0 0 12px rgba(255,235,0,0.6);
      }}
      </style>
      
@@ -395,6 +399,7 @@ if st.button("Predict My Risk & Recommendations"):
          <div class="risk-category">Risk Category: {risk_category}</div>
      </div>
      """, unsafe_allow_html=True)
+
 
      
 
