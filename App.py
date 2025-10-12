@@ -236,43 +236,38 @@ if tech_usage_yesno=="Yes":
 
 # --- ATTRACTIVE DYNAMIC BUTTON ---
 
+# --- ATTRACTIVE STYLED BUTTON (Real st.button) ---
 st.markdown("""
 <style>
-#predict_btn button {
+div.stButton > button:first-child {
     background: linear-gradient(90deg, #2196F3, #21CBF3, #00E676);
     color: white;
     font-size: 18px;
     font-weight: bold;
-    padding: 15px 25px;
+    padding: 12px 25px;
     border-radius: 12px;
     border: none;
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 4px 15px rgba(0,0,0,0.3);
 }
-#predict_btn button:hover {
+div.stButton > button:first-child:hover {
     background: linear-gradient(90deg, #00E676, #21CBF3, #2196F3);
     transform: scale(1.05);
     box-shadow: 0 6px 25px rgba(0,0,0,0.5);
 }
-#predict_btn button:active {
+div.stButton > button:first-child:active {
     transform: scale(0.98);
     box-shadow: 0 4px 15px rgba(0,0,0,0.3);
 }
 </style>
 """, unsafe_allow_html=True)
 
-# Hidden actual Streamlit button
-if st.button("Predict My Risk & Recommendations", key="predict_btn_hidden"):
-    # --- Your existing prediction logic goes here ---
-   with st.spinner("Calculating your risk score..."):
-        # Prediction code block
-    # Display styled button linked to the hidden button
-     st.markdown("""
-     <div id="predict_btn">
-      <button onclick="document.querySelector('#predict_btn_hidden button').click()">Predict My Risk & Recommendations</button>
-      </div>
-     """, unsafe_allow_html=True)
+# --- REAL STREAMLIT BUTTON ---
+if st.button("Predict My Risk & Recommendations"):
+    # --- Your existing prediction logic ---
+    with st.spinner("Calculating your risk score..."):
+        pass  # prediction code here
         # Prepare input data dictionary
      input_data = pd.DataFrame({
             'personnel_id':[personnel_id],
@@ -463,6 +458,7 @@ if st.button("Predict My Risk & Recommendations", key="predict_btn_hidden"):
     
     
     
+
 
 
 
