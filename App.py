@@ -13,9 +13,12 @@ with open("—Pngtree—gold police officer badge_7258551.png", "rb") as img_fil
     encoded_logo = base64.b64encode(img_file.read()).decode()
 
 # Header Section
+# ==================== HEADER SECTION ====================
+
 st.markdown(
     f"""
     <style>
+        /* Sticky, compact, modern header */
         .app-header {{
             position: fixed;
             top: 3.2rem;
@@ -25,7 +28,7 @@ st.markdown(
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 25px 30px;
+            padding: 8px 30px;
             background: linear-gradient(135deg, #0F2027, #203A43, #2C5364);
             box-shadow: 0 4px 12px rgba(0,0,0,0.4);
             border-radius: 0 0 10px 10px;
@@ -68,16 +71,24 @@ st.markdown(
             color: white;
         }}
 
+        /* Padding for page content */
         .block-container {{
             padding-top: 120px !important;
         }}
+
+        /* === FIX: Prevent subheader overlap === */
+        [id] {{
+            scroll-margin-top: 130px; /* space equal to header height */
+        }}
     </style>
 
+    <!-- Header -->
     <div class="app-header">
         <div class="header-left">
             <img src="data:image/png;base64,{encoded_logo}" alt="Logo">
             <span class="header-title">Predictive Healthcare for Police Personnel</span>
         </div>
+
         <div class="menu">
             <a href="#demographics">Demographics</a>
             <a href="#vital">Vital Signs</a>
@@ -524,6 +535,7 @@ if 'risk_score' in locals():
         file_name=f"police_health_report_{input_data['personnel_id'].iloc[0]}.pdf",
         mime="application/pdf"
     )
+
 
 
 
