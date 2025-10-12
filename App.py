@@ -235,12 +235,19 @@ if tech_usage_yesno=="Yes":
     tech_level = st.radio("Level of usage", ["High","Medium","Low"])
 
 # --- ATTRACTIVE DYNAMIC BUTTON ---
-st.markdown("""
+import base64
+
+# Encode logo
+with open("—Pngtree—gold police officer badge_7258551.png", "rb") as img_file:
+    encoded_logo = base64.b64encode(img_file.read()).decode()
+
+# --- DYNAMIC BUTTON WITH LOGO (CSS fixed) ---
+st.markdown(f"""
 <style>
-div.stButton > button:first-child {
+div.stButton > button:first-child {{
     font-size: 18px;
     font-weight: 700;
-    padding: 15px 40px 15px 60px;  /* extra left padding for logo */
+    padding: 15px 40px 15px 60px;
     border-radius: 15px;
     border: none;
     color: white;
@@ -251,38 +258,38 @@ div.stButton > button:first-child {
     box-shadow: 0 4px 20px rgba(0,0,0,0.6);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     position: relative;
-}
+}}
 
-div.stButton > button:first-child::before {
+div.stButton > button:first-child::before {{
     content: "";
     position: absolute;
     left: 15px;
     top: 50%;
     transform: translateY(-50%);
-    width: 30px;  /* logo width */
-    height: 30px; /* logo height */
-    background-image: url("data:image/png;base64,{}");  /* inject base64 logo */
+    width: 30px;
+    height: 30px;
+    background-image: url("data:image/png;base64,{encoded_logo}");
     background-size: cover;
     background-repeat: no-repeat;
-}
+}}
 
-div.stButton > button:first-child:hover {
+div.stButton > button:first-child:hover {{
     transform: scale(1.05);
     box-shadow: 0 0 25px rgba(0,191,255,0.9);
-}
+}}
 
-div.stButton > button:first-child:active {
+div.stButton > button:first-child:active {{
     transform: scale(0.98);
     box-shadow: 0 0 15px rgba(0,191,255,0.7);
-}
+}}
 
-@keyframes gradientShiftBtn {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
+@keyframes gradientShiftBtn {{
+    0% {{ background-position: 0% 50%; }}
+    50% {{ background-position: 100% 50%; }}
+    100% {{ background-position: 0% 50%; }}
+}}
 </style>
-""".format(base64.b64encode(open("—Pngtree—gold police officer badge_7258551.png", "rb").read()).decode()), unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
 # --- REAL STREAMLIT BUTTON ---
 if st.button("Predict My Risk & Recommendations"):
