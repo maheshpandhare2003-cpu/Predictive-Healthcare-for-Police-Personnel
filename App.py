@@ -235,14 +235,12 @@ if tech_usage_yesno=="Yes":
     tech_level = st.radio("Level of usage", ["High","Medium","Low"])
 
 # --- ATTRACTIVE DYNAMIC BUTTON ---
-
-# --- ATTRACTIVE STYLED BUTTON (Real st.button) ---
 st.markdown("""
 <style>
 div.stButton > button:first-child {
     font-size: 18px;
-    font-weight: 700;  /* bold font */
-    padding: 15px 30px;
+    font-weight: 700;
+    padding: 15px 40px 15px 60px;  /* extra left padding for logo */
     border-radius: 15px;
     border: none;
     color: white;
@@ -252,6 +250,20 @@ div.stButton > button:first-child {
     animation: gradientShiftBtn 5s ease infinite;
     box-shadow: 0 4px 20px rgba(0,0,0,0.6);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+}
+
+div.stButton > button:first-child::before {
+    content: "";
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 30px;  /* logo width */
+    height: 30px; /* logo height */
+    background-image: url("data:image/png;base64,{}");  /* inject base64 logo */
+    background-size: cover;
+    background-repeat: no-repeat;
 }
 
 div.stButton > button:first-child:hover {
@@ -270,7 +282,8 @@ div.stButton > button:first-child:active {
     100% { background-position: 0% 50%; }
 }
 </style>
-""", unsafe_allow_html=True)
+""".format(base64.b64encode(open("—Pngtree—gold police officer badge_7258551.png", "rb").read()).decode()), unsafe_allow_html=True)
+
 # --- REAL STREAMLIT BUTTON ---
 if st.button("Predict My Risk & Recommendations"):
     # --- Your existing prediction logic ---
