@@ -200,11 +200,6 @@ if shift_pattern.lower() in ["night", "rotational"]:
 # Clip to 1-10
 stress_level = int(np.clip(stress_calc, 1, 10))
 
-# Display stress slider (read-only)
-st.slider(
-    "Stress Level (calculated automatically based on your inputs)",
-    min_value=1, max_value=10, value=stress_level, disabled=True
-)
 
 # --- Mood Selector ---
 mood = st.selectbox(
@@ -304,6 +299,7 @@ if st.button("Predict My Risk & Recommendations"):
         color = "#00C853" if risk_category=="✅ Normal" else "#FFA000" if risk_category=="⚠ Borderline" else "#D32F2F"
         st.markdown(f"<h2 style='color:{color}'>Risk Score: {risk_score:.1f}</h2>", unsafe_allow_html=True)
         st.markdown(f"<h3 style='color:{color}'>Risk Category: {risk_category}</h3>", unsafe_allow_html=True)
+
 
 
 
