@@ -23,10 +23,15 @@ st.markdown(
         }}
 
         .app-header {{
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 9999;
             text-align: center;
             padding: 25px;
             color: white;
-            border-radius: 15px;
+            border-radius: 0 0 15px 15px;
             background: linear-gradient(135deg, #0F2027, #203A43, #2C5364);
             background-size: 300% 300%;
             animation: gradientShift 10s ease infinite;
@@ -59,6 +64,11 @@ st.markdown(
             color: #B3E5FC;
             text-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
         }}
+
+        /* Add padding to Streamlit main container so content is not hidden under fixed header */
+        .block-container {{
+            padding-top: 220px !important;
+        }}
     </style>
 
     <div class='app-header'>
@@ -69,7 +79,6 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-
 
 import pandas as pd
 
@@ -498,6 +507,7 @@ if 'risk_score' in locals():
         file_name=f"police_health_report_{input_data['personnel_id'].iloc[0]}.pdf",
         mime="application/pdf"
     )
+
 
 
 
