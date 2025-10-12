@@ -16,191 +16,76 @@ with open("—Pngtree—gold police officer badge_7258551.png", "rb") as img_fil
 st.markdown(
     f"""
     <style>
-        /* compact sticky header */
         .app-header {{
             position: fixed;
-            top: 3.2rem;             /* below Streamlit top bar */
+            top: 3.2rem;
             left: 0;
             width: 100%;
             z-index: 9999;
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            justify-content: center;
-            gap: 24px;
-            padding: 8px 12px;      /* <<< compact height */
-            color: white;
+            padding: 8px 30px;
+            background: linear-gradient(135deg, #0F2027, #203A43, #2C5364);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
             border-radius: 0 0 10px 10px;
-            background: linear-gradient(135deg, rgba(15,32,39,0.95), rgba(32,58,67,0.95));
-            backdrop-filter: blur(4px);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
         }}
 
-        .app-header .brand {{
-            display:flex;
-            align-items:center;
-            gap:10px;
-            margin-right: 18px;
+        .header-left {{
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }}
 
-        .app-header img {{
-            width: 48px;            /* <<< small logo */
-            height: 48px;
-            border-radius: 8px;
-            box-shadow: 0 0 8px rgba(0,0,0,0.4);
+        .header-left img {{
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
         }}
 
-        .app-header .title {{
-            font-size: 1.05rem;
+        .header-title {{
+            font-size: 1.1rem;
             font-weight: 700;
-            margin: 0;
-            line-height: 1;
             color: #E0F7FA;
         }}
 
-        .app-header .subtitle {{
-            font-size: 0.75rem;
-            margin: 0;
-            color: #B3E5FC;
-            opacity: 0.9;
+        .menu {{
+            display: flex;
+            gap: 15px;
         }}
 
-        /* nav tabs */
-        .app-nav {{
-            display:flex;
-            gap:8px;
-            align-items:center;
-        }}
-
-        .app-nav a {{
-            padding: 6px 12px;
-            font-size: 0.9rem;
-            color: #dbeefe;
+        .menu a {{
             text-decoration: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: transform 0.12s ease, box-shadow 0.12s ease;
-            border: 1px solid rgba(255,255,255,0.04);
-            background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.02));
+            color: #B3E5FC;
+            font-size: 0.9rem;
+            padding: 6px 12px;
+            border-radius: 6px;
+            transition: all 0.2s ease-in-out;
         }}
 
-        .app-nav a:hover {{
-            transform: translateY(-2px);
-            box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+        .menu a:hover {{
+            background: rgba(255,255,255,0.1);
+            color: white;
         }}
 
-        .app-nav a.active {{
-            background: linear-gradient(90deg, rgba(0,200,255,0.12), rgba(0,120,255,0.08));
-            color: #E8FFFF;
-            border: 1px solid rgba(0,200,255,0.18);
-        }}
-
-        /* ensure content not hidden under header */
         .block-container {{
-            padding-top: 160px !important;  /* reduce so page below remains as-is */
-        }}
-
-        /* small screens - responsive */
-        @media (max-width: 700px) {{
-            .app-header {{
-                padding: 8px 8px;
-                gap: 10px;
-            }}
-            .app-nav a {{ padding: 6px 8px; font-size:0.8rem; }}
-            .app-header img {{ width:40px; height:40px; }}
-            .block-container {{ padding-top: 200px !important; }}
+            padding-top: 120px !important;
         }}
     </style>
 
-    <div class="app-header" role="navigation" aria-label="App header and navigation">
-        <div class="brand" aria-hidden="false">
-            <img src="data:image/png;base64,{encoded_logo}" alt="Police Logo">
-            <div style="display:flex;flex-direction:column;justify-content:center;">
-                <div class="title">Predictive Healthcare</div>
-                <div class="subtitle">for Police Personnel</div>
-            </div>
+    <div class="app-header">
+        <div class="header-left">
+            <img src="data:image/png;base64,{encoded_logo}" alt="Logo">
+            <span class="header-title">Predictive Healthcare for Police Personnel</span>
         </div>
-
-        <nav class="app-nav" id="appNav">
-            <a class="nav-item active" data-target="top">Home</a>
-            <a class="nav-item" data-target="Demographics">Demographics</a>
-            <a class="nav-item" data-target="Vital Signs">Vital Signs</a>
-            <a class="nav-item" data-target="Lifestyle">Lifestyle</a>
-            <a class="nav-item" data-target="Recommendations">Recommendations</a>
-            <a class="nav-item" data-target="Download">Download</a>
-        </nav>
+        <div class="menu">
+            <a href="#demographics">Demographics</a>
+            <a href="#vital">Vital Signs</a>
+            <a href="#lifestyle">Lifestyle</a>
+            <a href="#recommendations">Recommendations</a>
+            <a href="#download">Download</a>
+        </div>
     </div>
-
-    <script>
-    (() => {{
-        // Helper: smooth scroll to element by matching visible heading text (best-effort)
-        function scrollToSectionByText(text) {{
-            if (text === 'top') {{
-                window.scrollTo({{top: 0, behavior: 'smooth'}});
-                return;
-            }}
-            // Search for headers (h1..h4) and elements with class that contain the text
-            const candidates = Array.from(document.querySelectorAll('h1, h2, h3, h4, .stMarkdown, .streamlit-expanderHeader'));
-            const match = candidates.find(el => el.innerText && el.innerText.toLowerCase().includes(text.toLowerCase()));
-            if (match) {{
-                // compute top offset to account for fixed header height
-                const header = document.querySelector('.app-header');
-                const offset = header ? header.getBoundingClientRect().height + 24 : 120;
-                const topPos = match.getBoundingClientRect().top + window.scrollY - offset;
-                window.scrollTo({{top: topPos, behavior: 'smooth'}});
-                return true;
-            }} else {{
-                // fallback: try to scroll to approximate positions by known keywords
-                const keyword = text.toLowerCase();
-                const mapping = {{
-                    'demographics': document.querySelector('.stNumberInput') || null,
-                }};
-                const el = mapping[keyword];
-                if (el) {{
-                    const header = document.querySelector('.app-header');
-                    const offset = header ? header.getBoundingClientRect().height + 24 : 120;
-                    const topPos = el.getBoundingClientRect().top + window.scrollY - offset;
-                    window.scrollTo({{top: topPos, behavior: 'smooth'}});
-                    return true;
-                }}
-            }}
-            return false;
-        }}
-
-        // attach click handlers to nav items
-        const navItems = document.querySelectorAll('.app-nav .nav-item');
-        navItems.forEach(item => {{
-            item.addEventListener('click', (e) => {{
-                e.preventDefault();
-                // set active class
-                navItems.forEach(n=>n.classList.remove('active'));
-                item.classList.add('active');
-                const target = item.getAttribute('data-target');
-                // try multiple matching variants
-                const variants = [target, '👤 ' + target, target + ' (years)', target + ' hours', target.toLowerCase()];
-                let scrolled = false;
-                for (const v of variants) {{
-                    if (scrollToSectionByText(v)) {{
-                        scrolled = true;
-                        break;
-                    }}
-                }}
-                if (!scrolled) {{
-                    // last resort: scroll slowly down page to help user
-                    if (target.toLowerCase() === 'download') {{
-                        window.scrollTo({{top: document.body.scrollHeight, behavior: 'smooth'}});
-                    }}
-                }}
-            }});
-        }});
-
-        // observe DOM changes to ensure nav remains visible (optional resilience)
-        const observer = new MutationObserver(() => {{
-            const header = document.querySelector('.app-header');
-            if (header) header.style.display = 'flex';
-        }});
-        observer.observe(document.body, {{childList:true, subtree:true}});
-    }})();
-    </script>
     """,
     unsafe_allow_html=True
 )
@@ -210,6 +95,7 @@ import pandas as pd
 # Load dataset for dropdowns
 df = pd.read_csv("police_health_dataset.csv")
 
+st.markdown("<div id='demographics'></div>", unsafe_allow_html=True)
 st.subheader("👤 Demographics")
 
 col1, col2, col3 = st.columns(3)
@@ -237,6 +123,7 @@ bmi = round(weight_kg / ((height_cm/100)**2), 1)
 st.text_input("BMI", value=bmi, disabled=True)
 
 
+st.markdown("<div id='vital'></div>", unsafe_allow_html=True)
 st.subheader("❤️ Vital Signs")
 
 col1, col2, col3 = st.columns(3)
@@ -256,6 +143,7 @@ with col3:
     if chronic_disease == "Other":
         chronic_disease_other = st.text_input("Please specify your chronic disease")
 
+st.markdown("<div id='lifestyle'></div>", unsafe_allow_html=True)
 st.subheader("🏃 Lifestyle / Habits")
 
 col1, col2, col3 = st.columns(3)
@@ -492,6 +380,7 @@ if st.button("Predict My Risk & Recommendations"):
 
 # Personalized Recommendations (Safe Version)
 if 'risk_category' in locals():  # Check if risk_category exists
+    st.markdown("<div id='recommendations'></div>", unsafe_allow_html=True)
     st.subheader("💡 Personalized Recommendations")
     st.info("Based on your risk profile, recommended preventive measures will be displayed here.")
 
@@ -542,8 +431,8 @@ import datetime
 import streamlit as st
 
 if 'risk_score' in locals():
+    st.markdown("<div id='download'></div>", unsafe_allow_html=True)
     st.subheader("📄 Download PDF Report")
-
     buffer = io.BytesIO()
     pdf = SimpleDocTemplate(
         buffer, 
@@ -632,6 +521,7 @@ if 'risk_score' in locals():
         file_name=f"police_health_report_{input_data['personnel_id'].iloc[0]}.pdf",
         mime="application/pdf"
     )
+
 
 
 
