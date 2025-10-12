@@ -350,7 +350,7 @@ if st.button("Predict My Risk & Recommendations"):
      else: risk_category="❌ High Risk"
     # --- STYLISH RISK SCORE & CATEGORY WITH BLACK GRADIENT ---
     # --- RISK SCORE & CATEGORY STYLISH AND DYNAMIC ---
-     color = "#00C853" if risk_category=="✅ Normal" else "#FFA000" if risk_category=="⚠ Borderline" else "#D32F2F"
+     color = "#EBEBEB" if risk_category=="✅ Normal" else "#FFA000" if risk_category=="⚠ Borderline" else "#D32F2F"
      
      st.markdown(f"""
      <style>
