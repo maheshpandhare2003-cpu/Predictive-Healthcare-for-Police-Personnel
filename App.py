@@ -265,16 +265,16 @@ st.markdown("""
 # Hidden actual Streamlit button
 if st.button("Predict My Risk & Recommendations", key="predict_btn_hidden"):
     # --- Your existing prediction logic goes here ---
-    with st.spinner("Calculating your risk score..."):
+   with st.spinner("Calculating your risk score..."):
         # Prediction code block
     # Display styled button linked to the hidden button
-    st.markdown("""
-    <div id="predict_btn">
+     st.markdown("""
+     <div id="predict_btn">
       <button onclick="document.querySelector('#predict_btn_hidden button').click()">Predict My Risk & Recommendations</button>
-    </div>
+      </div>
      """, unsafe_allow_html=True)
         # Prepare input data dictionary
-        input_data = pd.DataFrame({
+     input_data = pd.DataFrame({
             'personnel_id':[personnel_id],
             'post':[post],
             'posted_city':[posted_city],
@@ -306,169 +306,163 @@ if st.button("Predict My Risk & Recommendations", key="predict_btn_hidden"):
         })
 
         # Convert numeric columns to float
-        numeric_cols = ['personnel_id','pollution_index','city_workload_index','age','years_of_service',
+     numeric_cols = ['personnel_id','pollution_index','city_workload_index','age','years_of_service',
                         'height_cm','weight_kg','bmi','systolic_bp','diastolic_bp','heart_rate','spo2',
                         'fasting_blood_sugar','cholesterol','sleep_hours','exercise_mins_per_week',
                         'stress_level','working_hours_per_week']
-        for col in numeric_cols:
+     for col in numeric_cols:
             input_data[col] = pd.to_numeric(input_data[col], errors='coerce')
-        if input_data[numeric_cols].isnull().any().any():
+     if input_data[numeric_cols].isnull().any().any():
             st.error("Invalid numeric inputs detected!")
             st.stop()
         # Encode categorical
-        categorical_cols = ['post','posted_city','gender','chronic_disease','smoking','alcohol',
+     categorical_cols = ['post','posted_city','gender','chronic_disease','smoking','alcohol',
                             'shift_pattern','healthcare_scheme','technological_support','predictive_system_usage']
-        for col in categorical_cols:
+     for col in categorical_cols:
             input_data[col] = input_data[col].astype(str).fillna("Unknown")
-        input_encoded = ct_encoder.transform(input_data)
+     input_encoded = ct_encoder.transform(input_data)
         # Predict
-        risk_score = xgb_model.predict(input_encoded)[0]
-        if risk_score<40: risk_category="✅ Normal"
-        elif risk_score<70: risk_category="⚠ Borderline"
-        else: risk_category="❌ High Risk"
+     risk_score = xgb_model.predict(input_encoded)[0]
+     if risk_score<40: risk_category="✅ Normal"
+     elif risk_score<70: risk_category="⚠ Borderline"
+     else: risk_category="❌ High Risk"
         # Display Risk
-        color = "#00C853" if risk_category=="✅ Normal" else "#FFA000" if risk_category=="⚠ Borderline" else "#D32F2F"
-        st.markdown(f"<h2 style='color:{color}'>Risk Score: {risk_score:.1f}</h2>", unsafe_allow_html=True)
-        st.markdown(f"<h3 style='color:{color}'>Risk Category: {risk_category}</h3>", unsafe_allow_html=True)
-        # --- FEATURE IMPORTANCE ---
-        st.subheader("📊 Top Factors Impacting Risk")
-        importance = xgb_model.feature_importances_
-        feature_names = input_data.columns
-        top_indices = np.argsort(importance)[::-1][:5]
-
-        for i in top_indices:
-         st.progress(min(int(importance[i]*100), 100), text=f"{feature_names[i]}")
-
-        # --- PERSONALIZED RECOMMENDATIONS ---
-        st.subheader("💡 Personalized Recommendations")
-        recommendations = []
-
-        # Risk-category-based recommendations
-        if risk_category == "✅ Normal":
-         recommendations.append("Maintain your current healthy lifestyle and continue regular check-ups.")
-        elif risk_category == "⚠ Borderline":
-         recommendations.append("Pay attention to your diet, exercise regularly, and monitor vital signs closely.")
-        else:  # High Risk
-         recommendations.append("Consult a healthcare professional immediately and follow preventive measures strictly.")
-
-       # Targeted advice based on top features
-        top_features = [feature_names[i] for i in top_indices[:3]]  # top 3 impacting features
-        for feature in top_features:
-         if feature == "systolic_bp" or feature == "diastolic_bp":
-          recommendations.append("Monitor your blood pressure regularly and reduce salt intake.")
-         elif feature == "cholesterol":
-          recommendations.append("Maintain a low-fat diet and avoid processed foods.")
-         elif feature == "fasting_blood_sugar":
-          recommendations.append("Check blood sugar regularly and limit sugary foods.")
-         elif feature == "exercise_mins_per_week":
-          recommendations.append("Increase your weekly exercise to improve overall health.")
-         elif feature == "sleep_hours":
-          recommendations.append("Ensure adequate sleep (7–8 hours) daily.")
-         elif feature == "stress_level":
-          recommendations.append("Practice stress management techniques like meditation, yoga, or mindfulness.")
-         elif feature == "smoking":
-          recommendations.append("Consider quitting smoking to reduce health risks.")
-         elif feature == "alcohol":
-          recommendations.append("Limit alcohol consumption to improve health.")
-         elif feature == "water_intake_liters":
-          recommendations.append("Maintain proper hydration by drinking sufficient water daily.")
-         elif feature in ["diet_protein", "diet_vitamins", "diet_carbs", "diet_minerals"]:
-          recommendations.append(f"Ensure your {feature.split('_')[1]} intake meets daily requirements.")
-
-# Display all recommendations
-         for rec in recommendations:
-          st.success(rec)
-        
-        import numpy as np
-        from reportlab.lib.pagesizes import A4
-        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image
-        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-        from reportlab.lib import colors
-        import io
-        import datetime
-        
-        st.subheader("📄 Download PDF Report")
-        
-        buffer = io.BytesIO()
-        pdf = SimpleDocTemplate(
-            buffer,
-            pagesize=A4,
-            rightMargin=30, leftMargin=30,
-            topMargin=30, bottomMargin=30
-        )
-        elements = []
-        styles = getSampleStyleSheet()
-        styles.add(ParagraphStyle(name='HeadingLarge', fontSize=16, leading=20, spaceAfter=10, alignment=1, fontName='Helvetica-Bold'))
-        styles.add(ParagraphStyle(name='SubHeading', fontSize=14, leading=18, spaceAfter=8, fontName='Helvetica-Bold'))
-        styles.add(ParagraphStyle(name='NormalText', fontSize=12, leading=16, fontName='Helvetica'))
-        styles.add(ParagraphStyle(name='FooterText', fontSize=10, leading=12, alignment=1, textColor=colors.grey))
-        
-        # Logo
-        try:
-            logo = Image("—Pngtree—gold police officer badge_7258551.png", width=60, height=60)
-            logo.hAlign = 'CENTER'
-            elements.append(logo)
-            elements.append(Spacer(1,8))
-        except:
-            pass
-        
-        # Title
-        elements.append(Paragraph("Predictive Healthcare Report", styles['HeadingLarge']))
-        elements.append(Spacer(1,12))
-        
-        # Personnel Info
-        elements.append(Paragraph("Personnel Information", styles['SubHeading']))
-        data = [[col, str(input_data[col].iloc[0])] for col in input_data.columns]
-        table = Table(data, colWidths=[150, 350])
-        table.setStyle(TableStyle([
-            ('BACKGROUND',(0,0),(-1,0),colors.lightgrey),
-            ('GRID',(0,0),(-1,-1),0.5,colors.black),
-            ('FONTNAME',(0,0),(-1,-1),'Helvetica'),
-            ('FONTSIZE',(0,0),(-1,-1),10),
-            ('VALIGN',(0,0),(-1,-1),'MIDDLE'),
-        ]))
-        elements.append(table)
-        elements.append(Spacer(1,12))
-        
-        # Risk Assessment
-        elements.append(Paragraph("Risk Assessment", styles['SubHeading']))
-        risk_color = colors.green if risk_category=="✅ Normal" else colors.orange if risk_category=="⚠ Borderline" else colors.red
-        elements.append(Paragraph(f"Risk Score: {risk_score:.1f}", ParagraphStyle('RiskScore', textColor=risk_color, fontSize=12, leading=16)))
-        elements.append(Paragraph(f"Risk Category: {risk_category}", ParagraphStyle('RiskCat', textColor=risk_color, fontSize=12, leading=16)))
-        elements.append(Spacer(1,12))
-        
-        # Top Features
-        elements.append(Paragraph("Top Factors Impacting Risk", styles['SubHeading']))
-        for i in top_indices[:5]:
-            elements.append(Paragraph(f"{feature_names[i]} (Importance: {xgb_model.feature_importances_[i]:.2f})", styles['NormalText']))
-        elements.append(Spacer(1,12))
-        
-        # Recommendations
-        elements.append(Paragraph("Personalized Recommendations", styles['SubHeading']))
-        for rec in recommendations:
-            elements.append(Paragraph(f"• {rec}", styles['NormalText']))
-        elements.append(Spacer(1,12))
-        
-        # Footer
-        footer_text = f"Generated from Police Personnel Healthcare | Developed by Your Name | Report Date: {datetime.datetime.now().strftime('%d-%m-%Y %H:%M:%S')}"
-        elements.append(Paragraph(footer_text, styles['FooterText']))
-        
-        # Build PDF
-        pdf.build(elements)
-        buffer.seek(0)
-        
-        st.download_button(
-            label="📥 Download PDF Report",
-            data=buffer,
-            file_name=f"police_health_report_{input_data['personnel_id'].iloc[0]}.pdf",
-            mime="application/pdf"
-        )
-        
-        
-        
-        
-        
-
+     color = "#00C853" if risk_category=="✅ Normal" else "#FFA000" if risk_category=="⚠ Borderline" else "#D32F2F"
+     st.markdown(f"<h2 style='color:{color}'>Risk Score: {risk_score:.1f}</h2>", unsafe_allow_html=True)
+     st.markdown(f"<h3 style='color:{color}'>Risk Category: {risk_category}</h3>", unsafe_allow_html=True)
+    # --- FEATURE IMPORTANCE ---
+     st.subheader("📊 Top Factors Impacting Risk")
+     importance = xgb_model.feature_importances_
+     feature_names = input_data.columns
+     top_indices = np.argsort(importance)[::-1][:5]
+     for i in top_indices:
+      st.progress(min(int(importance[i]*100), 100), text=f"{feature_names[i]}")
+    # --- PERSONALIZED RECOMMENDATIONS ---
+     st.subheader("💡 Personalized Recommendations")
+     recommendations = []
+    # Risk-category-based recommendations
+     if risk_category == "✅ Normal":
+      recommendations.append("Maintain your current healthy lifestyle and continue regular check-ups.")
+     elif risk_category == "⚠ Borderline":
+      recommendations.append("Pay attention to your diet, exercise regularly, and monitor vital signs closely.")
+     else:  # High Risk
+      recommendations.append("Consult a healthcare professional immediately and follow preventive measures strictly.")
+   # Targeted advice based on top features
+     top_features = [feature_names[i] for i in top_indices[:3]]  # top 3 impacting features
+     for feature in top_features:
+      if feature == "systolic_bp" or feature == "diastolic_bp":
+       recommendations.append("Monitor your blood pressure regularly and reduce salt intake.")
+      elif feature == "cholesterol":
+       recommendations.append("Maintain a low-fat diet and avoid processed foods.")
+      elif feature == "fasting_blood_sugar":
+       recommendations.append("Check blood sugar regularly and limit sugary foods.")
+      elif feature == "exercise_mins_per_week":
+       recommendations.append("Increase your weekly exercise to improve overall health.")
+      elif feature == "sleep_hours":
+       recommendations.append("Ensure adequate sleep (7–8 hours) daily.")
+      elif feature == "stress_level":
+       recommendations.append("Practice stress management techniques like meditation, yoga, or mindfulness.")
+      elif feature == "smoking":
+       recommendations.append("Consider quitting smoking to reduce health risks.")
+      elif feature == "alcohol":
+       recommendations.append("Limit alcohol consumption to improve health.")
+      elif feature == "water_intake_liters":
+       recommendations.append("Maintain proper hydration by drinking sufficient water daily.")
+      elif feature in ["diet_protein", "diet_vitamins", "diet_carbs", "diet_minerals"]:
+       recommendations.append(f"Ensure your {feature.split('_')[1]} intake meets daily requirements.")
+# Dsplay all recommendations
+     for rec in recommendations:
+      st.success(rec)
+    
+     import numpy as np
+     from reportlab.lib.pagesizes import A4
+     from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image
+     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+     from reportlab.lib import colors
+     import io
+     import datetime
+    
+     st.subheader("📄 Download PDF Report")
+    
+     buffer = io.BytesIO()
+     pdf = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        rightMargin=30, leftMargin=30,
+        topMargin=30, bottomMargin=30
+     )
+     elements = []
+     styles = getSampleStyleSheet()
+     styles.add(ParagraphStyle(name='HeadingLarge', fontSize=16, leading=20, spaceAfter=10, alignment=1, fontName='Helvetica-Bold'))
+     styles.add(ParagraphStyle(name='SubHeading', fontSize=14, leading=18, spaceAfter=8, fontName='Helvetica-Bold'))
+     styles.add(ParagraphStyle(name='NormalText', fontSize=12, leading=16, fontName='Helvetica'))
+     styles.add(ParagraphStyle(name='FooterText', fontSize=10, leading=12, alignment=1, textColor=colors.grey))
+    
+    # Logo
+     try:
+        logo = Image("—Pngtree—gold police officer badge_7258551.png", width=60, height=60)
+        logo.hAlign = 'CENTER'
+        elements.append(logo)
+        elements.append(Spacer(1,8))
+     except:
+        pass
+    
+    # Title
+     elements.append(Paragraph("Predictive Healthcare Report", styles['HeadingLarge']))
+     elements.append(Spacer(1,12))
+    
+    # Personnel Info
+     elements.append(Paragraph("Personnel Information", styles['SubHeading']))
+     data = [[col, str(input_data[col].iloc[0])] for col in input_data.columns]
+     table = Table(data, colWidths=[150, 350])
+     table.setStyle(TableStyle([
+        ('BACKGROUND',(0,0),(-1,0),colors.lightgrey),
+        ('GRID',(0,0),(-1,-1),0.5,colors.black),
+        ('FONTNAME',(0,0),(-1,-1),'Helvetica'),
+        ('FONTSIZE',(0,0),(-1,-1),10),
+        ('VALIGN',(0,0),(-1,-1),'MIDDLE'),
+     ]))
+     elements.append(table)
+     elements.append(Spacer(1,12))
+    
+    # Risk Assessment
+     elements.append(Paragraph("Risk Assessment", styles['SubHeading']))
+     risk_color = colors.green if risk_category=="✅ Normal" else colors.orange if risk_category=="⚠ Borderline" else colors.red
+     elements.append(Paragraph(f"Risk Score: {risk_score:.1f}", ParagraphStyle('RiskScore', textColor=risk_color, fontSize=12, leading=16)))
+     elements.append(Paragraph(f"Risk Category: {risk_category}", ParagraphStyle('RiskCat', textColor=risk_color, fontSize=12, leading=16)))
+     elements.append(Spacer(1,12))
+    
+    # Top Features
+     elements.append(Paragraph("Top Factors Impacting Risk", styles['SubHeading']))
+     for i in top_indices[:5]:
+        elements.append(Paragraph(f"{feature_names[i]} (Importance: {xgb_model.feature_importances_[i]:.2f})", styles['NormalText']))
+     elements.append(Spacer(1,12))
+    
+    # Recommendations
+     elements.append(Paragraph("Personalized Recommendations", styles['SubHeading']))
+     for rec in recommendations:
+        elements.append(Paragraph(f"• {rec}", styles['NormalText']))
+     elements.append(Spacer(1,12))
+    
+    # Footer
+     footer_text = f"Generated from Police Personnel Healthcare | Developed by Your Name | Report Date: {datetime.datetime.now().strftime('%d-%m-%Y %H:%M:%S')}"
+     elements.append(Paragraph(footer_text, styles['FooterText']))
+    
+    # Build PDF
+     pdf.build(elements)
+     buffer.seek(0)
+    
+     st.download_button(
+        label="📥 Download PDF Report",
+        data=buffer,
+        file_name=f"police_health_report_{input_data['personnel_id'].iloc[0]}.pdf",
+        mime="application/pdf"
+      )
+    
+    
+    
+    
+    
 
 
 
