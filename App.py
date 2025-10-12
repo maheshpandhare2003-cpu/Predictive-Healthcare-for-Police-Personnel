@@ -17,6 +17,70 @@ st.set_page_config(
     layout="wide"
 )
 
+# --- Modern Gradient Menu Bar ---
+st.markdown("""
+<style>
+/* Sticky top navbar */
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(90deg, #0F2027, #203A43, #2C5364);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    padding: 0.6rem 1rem;
+}
+
+/* Navbar Links */
+.navbar a {
+    color: #E0F7FA;
+    text-decoration: none;
+    margin: 0 1.2rem;
+    font-size: 16px;
+    font-weight: 500;
+    transition: all 0.3s ease-in-out;
+    position: relative;
+}
+
+/* Hover Effects */
+.navbar a:hover {
+    color: #00E5FF;
+}
+.navbar a::after {
+    content: "";
+    position: absolute;
+    width: 0%;
+    height: 2px;
+    bottom: -3px;
+    left: 0;
+    background-color: #00E5FF;
+    transition: width 0.3s;
+}
+.navbar a:hover::after {
+    width: 100%;
+}
+
+/* Space for fixed navbar */
+.stApp {
+    padding-top: 60px;
+}
+</style>
+
+<div class="navbar">
+    <a href="#header">🏠 Home</a>
+    <a href="#demographics">👤 Demographics</a>
+    <a href="#vitals">❤️ Vital Signs</a>
+    <a href="#lifestyle">💪 Lifestyle</a>
+    <a href="#awareness">🧠 Awareness</a>
+    <a href="#results">📊 Risk Report</a>
+    <a href="#download">📥 Report</a>
+</div>
+""", unsafe_allow_html=True)
+
 # --- Background with Black-Blue Gradient Overlay ---
 import base64
 
@@ -119,6 +183,7 @@ ct_encoder = joblib.load("ct_encoder.pkl")
 xgb_model = joblib.load("xgb_model.pkl")
 
 # --- DEMOGRAPHICS SECTION ---
+st.markdown("<div id='demographics'></div>", unsafe_allow_html=True)
 st.subheader("👤 Demographics")
 col1, col2, col3 = st.columns(3)
 with col1:
@@ -139,6 +204,7 @@ bmi = round(weight_kg / ((height_cm/100)**2),1)
 st.text_input("BMI", value=bmi, disabled=True)
 
 # --- HEALTHCARE SCHEME SECTION ---
+st.markdown("<div id='awareness'></div>", unsafe_allow_html=True)
 st.subheader("🏥 Healthcare Scheme & Awareness Programs")
 col1, col2 = st.columns(2)
 with col1:
@@ -150,6 +216,7 @@ with col2:
 st.info("Healthcare Scheme is used for Survey & Analysis Purpose . Wellness program is just informative only.")
 
 # --- VITAL SIGNS SECTION ---
+st.markdown("<div id='#vitals'></div>", unsafe_allow_html=True)
 st.subheader("❤️ Vital Signs")
 col1, col2, col3 = st.columns(3)
 with col1:
@@ -166,6 +233,7 @@ with col3:
         chronic_disease_other = st.text_input("Please specify your chronic disease")
 
 # --- Physical Health ---
+st.markdown("<div id='lifestyle'></div>", unsafe_allow_html=True)
 st.markdown("### 🏋️ Physical Health")
 col1, col2 = st.columns(2)
 with col1:
@@ -395,7 +463,7 @@ if st.button("Predict My Risk & Recommendations"):
     # --- STYLISH RISK SCORE & CATEGORY WITH BLACK GRADIENT ---
     # --- RISK SCORE & CATEGORY STYLISH AND DYNAMIC ---
      color = "#EBEBEB" if risk_category=="✅ Normal" else "#FFA000" if risk_category=="⚠ Borderline" else "#D32F2F"
-     
+     st.markdown("<div id='results'></div>", unsafe_allow_html=True)
      st.markdown(f"""
      <style>
      @keyframes gradientText {{
@@ -496,7 +564,8 @@ if st.button("Predict My Risk & Recommendations"):
      from reportlab.lib import colors
      import io
      import datetime
-    
+     
+     st.markdown("<div id='download'></div>", unsafe_allow_html=True)
      st.subheader("📄 Download PDF Report")
     
      buffer = io.BytesIO()
