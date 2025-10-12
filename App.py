@@ -17,6 +17,50 @@ st.set_page_config(
     layout="wide"
 )
 
+# --- Background with Black-Blue Gradient Overlay ---
+import base64
+
+# Option 1: Use Online Background Image
+bg_image_url = "https://images.unsplash.com/photo-1526256262350-7da7584cf5eb"  # You can replace this link
+
+page_bg_img = f"""
+<style>
+[data-testid="stAppViewContainer"] {{
+    background: 
+        linear-gradient(rgba(0, 0, 0, 0.7), rgba(10, 25, 47, 0.9)),
+        url("{bg_image_url}");
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+}}
+
+[data-testid="stHeader"], [data-testid="stSidebar"] {{
+    background: rgba(0,0,0,0);
+}}
+
+h1, h2, h3, h4, h5, h6, p, label, span {{
+    color: #E0F7FA !important;
+}}
+
+.stButton > button {{
+    background: linear-gradient(90deg, #0F2027, #203A43, #2C5364);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 0.6em 1.2em;
+    font-weight: bold;
+    transition: 0.3s;
+}}
+
+.stButton > button:hover {{
+    background: linear-gradient(90deg, #2C5364, #203A43, #0F2027);
+    transform: scale(1.03);
+}}
+</style>
+"""
+st.markdown(page_bg_img, unsafe_allow_html=True)
+
+
 # --- HEADER SECTION ---
 with open("—Pngtree—gold police officer badge_7258551.png", "rb") as img_file:
     encoded_logo = base64.b64encode(img_file.read()).decode()
@@ -534,6 +578,7 @@ if st.button("Predict My Risk & Recommendations"):
     
     
     
+
 
 
 
