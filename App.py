@@ -17,10 +17,9 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- Modern Gradient Menu Bar ---
+# --- Modern Functional Menu Bar with Smooth Scroll ---
 st.markdown("""
 <style>
-/* Sticky top navbar */
 .navbar {
     position: fixed;
     top: 0;
@@ -35,22 +34,24 @@ st.markdown("""
     padding: 0.6rem 1rem;
 }
 
-/* Navbar Links */
-.navbar a {
+/* Menu Buttons */
+.navbar button {
+    background: transparent;
+    border: none;
     color: #E0F7FA;
-    text-decoration: none;
-    margin: 0 1.2rem;
     font-size: 16px;
     font-weight: 500;
-    transition: all 0.3s ease-in-out;
+    margin: 0 1.2rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
     position: relative;
 }
 
-/* Hover Effects */
-.navbar a:hover {
+.navbar button:hover {
     color: #00E5FF;
 }
-.navbar a::after {
+
+.navbar button::after {
     content: "";
     position: absolute;
     width: 0%;
@@ -60,25 +61,35 @@ st.markdown("""
     background-color: #00E5FF;
     transition: width 0.3s;
 }
-.navbar a:hover::after {
+
+.navbar button:hover::after {
     width: 100%;
 }
 
-/* Space for fixed navbar */
 .stApp {
     padding-top: 60px;
 }
 </style>
 
+<!-- Navbar with JS scroll -->
 <div class="navbar">
-    <a href="#header">🏠 Home</a>
-    <a href="#demographics">👤 Demographics</a>
-    <a href="#vitals">❤️ Vital Signs</a>
-    <a href="#lifestyle">💪 Lifestyle</a>
-    <a href="#awareness">🧠 Awareness</a>
-    <a href="#results">📊 Risk Report</a>
-    <a href="#download">📥 Report</a>
+    <button onclick="scrollToSection('header')">🏠 Home</button>
+    <button onclick="scrollToSection('demographics')">👤 Demographics</button>
+    <button onclick="scrollToSection('vitals')">❤️ Vital Signs</button>
+    <button onclick="scrollToSection('lifestyle')">💪 Lifestyle</button>
+    <button onclick="scrollToSection('awareness')">🧠 Awareness</button>
+    <button onclick="scrollToSection('results')">📊 Risk Report</button>
+    <button onclick="scrollToSection('download')">📥 Report</button>
 </div>
+
+<script>
+function scrollToSection(sectionId) {
+    const section = window.parent.document.querySelector(`[id='${sectionId}']`);
+    if (section) {
+        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+</script>
 """, unsafe_allow_html=True)
 
 # --- Background with Black-Blue Gradient Overlay ---
