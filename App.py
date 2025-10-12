@@ -296,6 +296,57 @@ if st.button("Predict My Risk & Recommendations"):
         st.markdown(f"<h3 style='color:{color}'>Risk Category: {risk_category}</h3>", unsafe_allow_html=True)
 
 
+import numpy as np
+
+# --- FEATURE IMPORTANCE ---
+st.subheader("📊 Top Factors Impacting Risk")
+importance = xgb_model.feature_importances_
+feature_names = input_data.columns
+top_indices = np.argsort(importance)[::-1][:5]
+
+for i in top_indices:
+    st.progress(min(int(importance[i]*100), 100), text=f"{feature_names[i]}")
+
+# --- PERSONALIZED RECOMMENDATIONS ---
+st.subheader("💡 Personalized Recommendations")
+recommendations = []
+
+# Risk-category-based recommendations
+if risk_category == "✅ Normal":
+    recommendations.append("Maintain your current healthy lifestyle and continue regular check-ups.")
+elif risk_category == "⚠ Borderline":
+    recommendations.append("Pay attention to your diet, exercise regularly, and monitor vital signs closely.")
+else:  # High Risk
+    recommendations.append("Consult a healthcare professional immediately and follow preventive measures strictly.")
+
+# Targeted advice based on top features
+top_features = [feature_names[i] for i in top_indices[:3]]  # top 3 impacting features
+for feature in top_features:
+    if feature == "systolic_bp" or feature == "diastolic_bp":
+        recommendations.append("Monitor your blood pressure regularly and reduce salt intake.")
+    elif feature == "cholesterol":
+        recommendations.append("Maintain a low-fat diet and avoid processed foods.")
+    elif feature == "fasting_blood_sugar":
+        recommendations.append("Check blood sugar regularly and limit sugary foods.")
+    elif feature == "exercise_mins_per_week":
+        recommendations.append("Increase your weekly exercise to improve overall health.")
+    elif feature == "sleep_hours":
+        recommendations.append("Ensure adequate sleep (7–8 hours) daily.")
+    elif feature == "stress_level":
+        recommendations.append("Practice stress management techniques like meditation, yoga, or mindfulness.")
+    elif feature == "smoking":
+        recommendations.append("Consider quitting smoking to reduce health risks.")
+    elif feature == "alcohol":
+        recommendations.append("Limit alcohol consumption to improve health.")
+    elif feature == "water_intake_liters":
+        recommendations.append("Maintain proper hydration by drinking sufficient water daily.")
+    elif feature in ["diet_protein", "diet_vitamins", "diet_carbs", "diet_minerals"]:
+        recommendations.append(f"Ensure your {feature.split('_')[1]} intake meets daily requirements.")
+
+# Display all recommendations
+for rec in recommendations:
+    st.success(rec)
+
 
 
 
