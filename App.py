@@ -13,118 +13,59 @@ with open("—Pngtree—gold police officer badge_7258551.png", "rb") as img_fil
     encoded_logo = base64.b64encode(img_file.read()).decode()
 
 # Header Section
-# ==================== RESPONSIVE STICKY HEADER SECTION ====================
-# ====== DYNAMIC STICKY HEADER (REPLACE YOUR HEADER BLOCK WITH THIS) ======
-
 st.markdown(
     f"""
     <style>
-        .app-header {{
-            position: fixed;
-            top: 3.2rem;
-            left: 0;
-            width: 100%;
-            z-index: 9999;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            padding: 8px 20px;
-            background: linear-gradient(135deg, #0F2027, #203A43, #2C5364);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.35);
-            border-radius: 0 0 10px 10px;
+        @keyframes gradientShift {{
+            0% {{ background-position: 0% 50%; }}
+            50% {{ background-position: 100% 50%; }}
+            100% {{ background-position: 0% 50%; }}
         }}
-        .header-left {{ display:flex; align-items:center; gap:10px; }}
-        .header-left img {{ width:44px; height:44px; border-radius:8px; }}
-        .header-title {{ font-size:1.02rem; font-weight:700; color:#E0F7FA; }}
-        .menu {{ display:flex; gap:12px; flex-wrap:wrap; }}
-        .menu a {{ text-decoration:none; color:#B3E5FC; font-size:0.9rem; padding:6px 10px; border-radius:6px; }}
-        .menu a:hover {{ background:rgba(255,255,255,0.06); color:#fff; }}
-        .block-container {{ padding-top: 140px !important; }}  /* initial safe padding */
-        @media (max-width:700px) {{
-            .app-header {{ padding:10px 12px; }}
-            .menu a {{ font-size:0.85rem; padding:6px 8px; }}
-            .block-container {{ padding-top: 180px !important; }}
+
+        .app-header {{
+            text-align: center;
+            padding: 25px;
+            color: white;
+            border-radius: 15px;
+            background: linear-gradient(135deg, #0F2027, #203A43, #2C5364);
+            background-size: 300% 300%;
+            animation: gradientShift 10s ease infinite;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+        }}
+
+        .app-header img {{
+            width: 110px;
+            border-radius: 50%;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }}
+
+        .app-header img:hover {{
+            transform: scale(1.05);
+            box-shadow: 0 0 25px rgba(0, 191, 255, 0.9);
+        }}
+
+        .app-header h1 {{
+            margin-top: 10px;
+            font-size: 2.2em;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: #E0F7FA;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+        }}
+
+        .app-header p {{
+            font-size: 1.1em;
+            color: #B3E5FC;
+            text-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
         }}
     </style>
 
-    <div class="app-header" id="dynamicHeader">
-        <div class="header-left">
-            <img src="data:image/png;base64,{encoded_logo}" alt="logo">
-            <div class="header-title">Predictive Healthcare for Police Personnel</div>
-        </div>
-        <div class="menu">
-            <a href="#demographics">Demographics</a>
-            <a href="#vital">Vital Signs</a>
-            <a href="#lifestyle">Lifestyle</a>
-            <a href="#recommendations">Recommendations</a>
-            <a href="#download">Download</a>
-        </div>
+    <div class='app-header'>
+        <img src='data:image/png;base64,{encoded_logo}' alt='Police Logo'>
+        <h1>Predictive Healthcare for Police Personnel</h1>
+        <p>Get your personalized risk assessment and preventive suggestions</p>
     </div>
-
-    <script>
-    (function() {{
-        const header = document.getElementById('dynamicHeader');
-
-        // Compute header height and apply scroll-margin-top to all anchors with id
-        function applyDynamicOffset() {{
-            try {{
-                const headerHeight = header ? header.getBoundingClientRect().height : 0;
-                // apply to every element that has an id (targets)
-                document.querySelectorAll('[id]').forEach(el => {{
-                    // only for anchors we likely use (skip Streamlit internal ids if wanted)
-                    // set scroll-margin-top so scrollIntoView aligns correctly
-                    el.style.scrollMarginTop = (headerHeight + 8) + 'px';
-                }});
-                // also ensure block-container padding isn't too small on very large headers
-                const block = document.querySelector('.block-container');
-                if (block) {{
-                    const current = parseInt(window.getComputedStyle(block).paddingTop) || 0;
-                    if (current < headerHeight + 20) {{
-                        block.style.paddingTop = (headerHeight + 20) + 'px';
-                    }}
-                }}
-            }} catch (e) {{
-                console.warn('offset error', e);
-            }}
-        }}
-
-        // Smooth scrolling using scrollIntoView which respects scroll-margin-top
-        document.querySelectorAll('.menu a').forEach(link => {{
-            link.addEventListener('click', function(e) {{
-                e.preventDefault();
-                const targetId = this.getAttribute('href').substring(1);
-                const target = document.getElementById(targetId);
-                if (target) {{
-                    // ensure offsets are recalculated right before scroll (handles dynamic header/animations)
-                    applyDynamicOffset();
-                    // scroll exactly to start (scroll-margin-top ensures header doesn't overlap)
-                    target.scrollIntoView({{ behavior: 'smooth', block: 'start' }});
-                }} else {{
-                    // fallback: small delay then scroll to top/bottom accordingly
-                    if (targetId === 'download') {{
-                        window.scrollTo({{ top: document.body.scrollHeight, behavior: 'smooth' }});
-                    }}
-                }}
-            }});
-        }});
-
-        // Recalculate on load and resize (handles mobile/rotation)
-        window.addEventListener('load', applyDynamicOffset);
-        window.addEventListener('resize', function() {{
-            // small debounce
-            clearTimeout(window._hdrTimer);
-            window._hdrTimer = setTimeout(applyDynamicOffset, 120);
-        }});
-
-        // MutationObserver to reapply offsets if Streamlit re-renders
-        const obs = new MutationObserver(() => applyDynamicOffset());
-        obs.observe(document.body, {{ childList: true, subtree: true }});
-
-        // initial call
-        applyDynamicOffset();
-    }})();
-    </script>
     """,
     unsafe_allow_html=True
 )
@@ -563,6 +504,7 @@ if 'risk_score' in locals():
         file_name=f"police_health_report_{input_data['personnel_id'].iloc[0]}.pdf",
         mime="application/pdf"
     )
+
 
 
 
