@@ -13,12 +13,11 @@ with open("—Pngtree—gold police officer badge_7258551.png", "rb") as img_fil
     encoded_logo = base64.b64encode(img_file.read()).decode()
 
 # Header Section
-# ==================== HEADER SECTION ====================
+# ==================== RESPONSIVE STICKY HEADER SECTION ====================
 
 st.markdown(
     f"""
     <style>
-        /* Sticky, compact, modern header */
         .app-header {{
             position: fixed;
             top: 3.2rem;
@@ -28,7 +27,8 @@ st.markdown(
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 8px 30px;
+            flex-wrap: wrap;
+            padding: 10px 25px;
             background: linear-gradient(135deg, #0F2027, #203A43, #2C5364);
             box-shadow: 0 4px 12px rgba(0,0,0,0.4);
             border-radius: 0 0 10px 10px;
@@ -38,6 +38,7 @@ st.markdown(
             display: flex;
             align-items: center;
             gap: 10px;
+            margin-bottom: 5px;
         }}
 
         .header-left img {{
@@ -55,6 +56,8 @@ st.markdown(
         .menu {{
             display: flex;
             gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
         }}
 
         .menu a {{
@@ -71,24 +74,34 @@ st.markdown(
             color: white;
         }}
 
-        /* Padding for page content */
+        /* Add padding so page starts below header */
         .block-container {{
-            padding-top: 120px !important;
+            padding-top: 140px !important;
         }}
 
-        /* === FIX: Prevent subheader overlap === */
-        [id] {{
-            scroll-margin-top: 130px; /* space equal to header height */
+        /* Responsive layout */
+        @media (max-width: 700px) {{
+            .app-header {{
+                flex-direction: column;
+                align-items: center;
+                padding: 12px;
+            }}
+            .menu {{
+                justify-content: center;
+                gap: 8px;
+            }}
+            .menu a {{
+                font-size: 0.85rem;
+                padding: 6px 10px;
+            }}
         }}
     </style>
 
-    <!-- Header -->
-    <div class="app-header">
+    <div class="app-header" id="dynamicHeader">
         <div class="header-left">
             <img src="data:image/png;base64,{encoded_logo}" alt="Logo">
             <span class="header-title">Predictive Healthcare for Police Personnel</span>
         </div>
-
         <div class="menu">
             <a href="#demographics">Demographics</a>
             <a href="#vital">Vital Signs</a>
@@ -97,6 +110,23 @@ st.markdown(
             <a href="#download">Download</a>
         </div>
     </div>
+
+    <script>
+    // Smooth scroll with dynamic header height adjustment
+    document.querySelectorAll('.menu a').forEach(link => {{
+        link.addEventListener('click', function(e) {{
+            e.preventDefault();
+            const targetId = this.getAttribute('href').substring(1);
+            const target = document.getElementById(targetId);
+            const header = document.getElementById('dynamicHeader');
+            if (target) {{
+                const headerHeight = header.offsetHeight + 15;
+                const topPos = target.getBoundingClientRect().top + window.scrollY - headerHeight;
+                window.scrollTo({{ top: topPos, behavior: 'smooth' }});
+            }}
+        }});
+    }});
+    </script>
     """,
     unsafe_allow_html=True
 )
@@ -535,6 +565,7 @@ if 'risk_score' in locals():
         file_name=f"police_health_report_{input_data['personnel_id'].iloc[0]}.pdf",
         mime="application/pdf"
     )
+
 
 
 
