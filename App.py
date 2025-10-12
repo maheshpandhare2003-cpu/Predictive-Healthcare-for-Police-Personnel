@@ -348,10 +348,50 @@ if st.button("Predict My Risk & Recommendations"):
      if risk_score<40: risk_category="✅ Normal"
      elif risk_score<70: risk_category="⚠ Borderline"
      else: risk_category="❌ High Risk"
-        # Display Risk
+        # --- STYLISH RISK SCORE & CATEGORY ---
      color = "#00C853" if risk_category=="✅ Normal" else "#FFA000" if risk_category=="⚠ Borderline" else "#D32F2F"
-     st.markdown(f"<h2 style='color:{color}'>Risk Score: {risk_score:.1f}</h2>", unsafe_allow_html=True)
-     st.markdown(f"<h3 style='color:{color}'>Risk Category: {risk_category}</h3>", unsafe_allow_html=True)
+     glow_color = "#00C853" if risk_category=="✅ Normal" else "#FFA000" if risk_category=="⚠ Borderline" else "#D32F2F"
+     
+     st.markdown(f"""
+     <style>
+     @keyframes pulseGlow {{
+         0% {{ text-shadow: 0 0 10px {glow_color}; }}
+         50% {{ text-shadow: 0 0 25px rgba(255,255,255,0.6); }}
+         100% {{ text-shadow: 0 0 10px {glow_color}; }}
+     }}
+     .risk-box {{
+         text-align: center;
+         padding: 20px;
+         border-radius: 15px;
+         background: linear-gradient(135deg, #0F2027, #203A43, #2C5364);
+         background-size: 300% 300%;
+         animation: gradientShift 10s ease infinite, pulseGlow 2s infinite;
+         color: white;
+         margin-top: 20px;
+         box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+     }}
+     .risk-score {{
+         font-size: 2.5em;
+         font-weight: 700;
+         color: {color};
+         text-shadow: 0 0 15px {color};
+     }}
+     .risk-category {{
+         font-size: 1.8em;
+         font-weight: 600;
+         color: {color};
+         text-shadow: 0 0 10px {color};
+     }}
+     </style>
+     
+     <div class="risk-box">
+         <div class="risk-score">Risk Score: {risk_score:.1f}</div>
+         <div class="risk-category">Risk Category: {risk_category}</div>
+     </div>
+     """, unsafe_allow_html=True)
+     
+
+
     # --- FEATURE IMPORTANCE ---
      st.subheader("📊 Top Factors Impacting Risk")
      importance = xgb_model.feature_importances_
@@ -485,6 +525,7 @@ if st.button("Predict My Risk & Recommendations"):
     
     
     
+
 
 
 
