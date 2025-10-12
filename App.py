@@ -235,7 +235,46 @@ if tech_usage_yesno=="Yes":
     tech_level = st.radio("Level of usage", ["High","Medium","Low"])
 
 # --- Action Button & Prediction ---
-if st.button("Predict My Risk & Recommendations"):
+# --- STYLED BUTTON ---
+st.markdown("""
+<style>
+.dynamic-button {
+    background: linear-gradient(90deg, #2196F3, #21CBF3, #00E676);
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    padding: 15px 25px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    text-align: center;
+}
+
+.dynamic-button:hover {
+    background: linear-gradient(90deg, #00E676, #21CBF3, #2196F3);
+    transform: scale(1.05);
+    box-shadow: 0 6px 25px rgba(0,0,0,0.5);
+}
+
+.dynamic-button:active {
+    transform: scale(0.98);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+</style>
+""", unsafe_allow_html=True)
+
+# --- PLACE BUTTON ---
+if st.markdown('<button class="dynamic-button">Predict My Risk & Recommendations</button>', unsafe_allow_html=True):
+    pass
+
+# --- INTERACTIVE BUTTON LOGIC ---
+# Because normal HTML button cannot trigger Streamlit directly,
+# we can use st.button hidden and display the CSS styled button visually:
+
+if st.button("Predict My Risk & Recommendations", key="predict_btn"):
+    # --- Place your prediction code here ---
     with st.spinner("Calculating your risk score..."):
         # Prepare input data dictionary
         input_data = pd.DataFrame({
@@ -432,5 +471,6 @@ if st.button("Predict My Risk & Recommendations"):
         
         
         
+
 
 
