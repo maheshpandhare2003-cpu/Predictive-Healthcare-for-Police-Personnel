@@ -24,7 +24,7 @@ st.markdown(
 
         .app-header {{
             position: fixed;
-            top: 0;
+            top: 3.2rem; /* push header below Streamlit top bar */
             left: 0;
             width: 100%;
             z-index: 9999;
@@ -65,9 +65,9 @@ st.markdown(
             text-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
         }}
 
-        /* Add padding to Streamlit main container so content is not hidden under fixed header */
+        /* Add space below fixed header */
         .block-container {{
-            padding-top: 220px !important;
+            padding-top: 260px !important;
         }}
     </style>
 
@@ -507,6 +507,7 @@ if 'risk_score' in locals():
         file_name=f"police_health_report_{input_data['personnel_id'].iloc[0]}.pdf",
         mime="application/pdf"
     )
+
 
 
 
