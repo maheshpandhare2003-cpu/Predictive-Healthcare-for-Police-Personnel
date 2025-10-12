@@ -24,7 +24,7 @@ st.markdown(
 
         .app-header {{
             text-align: center;
-            padding: 25px;
+            padding: 22px;
             color: white;
             border-radius: 15px;
             background: linear-gradient(135deg, #0F2027, #203A43, #2C5364);
@@ -504,6 +504,7 @@ if 'risk_score' in locals():
         file_name=f"police_health_report_{input_data['personnel_id'].iloc[0]}.pdf",
         mime="application/pdf"
     )
+
 
 
 
