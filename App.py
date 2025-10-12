@@ -25,7 +25,7 @@ st.markdown(
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 8px 30px;
+            padding: 25px 30px;
             background: linear-gradient(135deg, #0F2027, #203A43, #2C5364);
             box-shadow: 0 4px 12px rgba(0,0,0,0.4);
             border-radius: 0 0 10px 10px;
@@ -96,6 +96,7 @@ import pandas as pd
 df = pd.read_csv("police_health_dataset.csv")
 
 st.subheader("👤 Demographics")
+
 st.markdown("<div id='demographics'></div>", unsafe_allow_html=True)
 
 col1, col2, col3 = st.columns(3)
@@ -122,9 +123,9 @@ with col3:
 bmi = round(weight_kg / ((height_cm/100)**2), 1)
 st.text_input("BMI", value=bmi, disabled=True)
 
+st.subheader("❤️ Vital Signs")
 
 st.markdown("<div id='vital'></div>", unsafe_allow_html=True)
-st.subheader("❤️ Vital Signs")
 
 col1, col2, col3 = st.columns(3)
 
@@ -380,8 +381,9 @@ if st.button("Predict My Risk & Recommendations"):
 
 # Personalized Recommendations (Safe Version)
 if 'risk_category' in locals():  # Check if risk_category exists
-    st.markdown("<div id='recommendations'></div>", unsafe_allow_html=True)
     st.subheader("💡 Personalized Recommendations")
+    
+    st.markdown("<div id='recommendations'></div>", unsafe_allow_html=True)
     st.info("Based on your risk profile, recommended preventive measures will be displayed here.")
 
     recommendations = []
@@ -431,8 +433,9 @@ import datetime
 import streamlit as st
 
 if 'risk_score' in locals():
-    st.markdown("<div id='download'></div>", unsafe_allow_html=True)
     st.subheader("📄 Download PDF Report")
+    
+    st.markdown("<div id='download'></div>", unsafe_allow_html=True)
     buffer = io.BytesIO()
     pdf = SimpleDocTemplate(
         buffer, 
@@ -521,6 +524,7 @@ if 'risk_score' in locals():
         file_name=f"police_health_report_{input_data['personnel_id'].iloc[0]}.pdf",
         mime="application/pdf"
     )
+
 
 
 
