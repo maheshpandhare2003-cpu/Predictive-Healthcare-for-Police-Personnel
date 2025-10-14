@@ -197,10 +197,10 @@ st.markdown("### 🥗 Diet Quality & Nutrition")
 meal = st.multiselect("Meals you take regularly", ["Breakfast", "Lunch", "Dinner"])
 
 # Macro/Micronutrients completion
-diet_protein = st.selectbox("Protein requirement met?", ["Not Completed", "Partially Completed", "Completed"])
-diet_vitamins = st.selectbox("Vitamins requirement met?", ["Not Completed", "Partially Completed", "Completed"])
-diet_carbs = st.selectbox("Carbohydrates requirement met?", ["Not Completed", "Partially Completed", "Completed"])
-diet_minerals = st.selectbox("Minerals requirement met?", ["Not Completed", "Partially Completed", "Completed"])
+diet_protein = st.selectbox("Protein requirement met?", ["Low", "Medium", "High"])
+diet_vitamins = st.selectbox("Vitamins requirement met?", ["Low", "Medium", "High"])
+diet_carbs = st.selectbox("Carbohydrates requirement met?", ["Low", "Medium", "High"])
+diet_minerals = st.selectbox("Minerals requirement met?", ["Low", "Medium", "High"])
 
 # Water Intake
 water_intake_liters = st.number_input("Daily Water Intake (Liters)", min_value=0.0, max_value=10.0, step=0.1)
@@ -618,6 +618,7 @@ if st.button("Predict My Risk & Recommendations"):
     
     
     
+
 
 
 
