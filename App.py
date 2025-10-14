@@ -159,11 +159,7 @@ st.subheader("❤️ Vital Signs")
 # Add all vital sign inputs here
 col1, col2, col3 = st.columns(3)
 with col1:
-    bp_category = st.selectbox("Blood Pressure Level", ["Low", "Medium", "High"])
-    heart_rate_category = st.selectbox("Heart Rate Level", ["Low", "Medium", "High"])
-    # Backend mapping (keeps your model working with numeric values)
-    systolic_bp, diastolic_bp = (95, 65) if bp_category == "Low" else (120, 80) if bp_category == "Medium" else (150, 100)
-    heart_rate = 55 if heart_rate_category == "Low" else 75 if heart_rate_category == "Medium" else 100
+    systolic_bp = st.number_input("Systolic BP (mmHg) [90-180]", min_value=90, max_value=180)
     diastolic_bp = st.number_input("Diastolic BP (mmHg) [60-120]", min_value=60, max_value=120)
     heart_rate = st.number_input("Heart Rate (bpm) [50-120]", min_value=50, max_value=120)
 with col2:
