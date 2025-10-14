@@ -369,4 +369,72 @@ if st.button("Predict My Risk & Recommendations"):
         pdf = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=30)
         elements = []
         styles = getSampleStyleSheet()
-        styles.add(ParagraphStyle
+                styles.add(ParagraphStyle(name='CenteredTitle', alignment=1, fontSize=16, spaceAfter=10, textColor=colors.darkblue))
+        styles.add(ParagraphStyle(name='BodyText', fontSize=11, leading=15))
+        styles.add(ParagraphStyle(name='SubHeader', fontSize=13, spaceAfter=8, textColor=colors.darkgoldenrod))
+
+        elements.append(Paragraph("Predictive Healthcare Risk Report", styles['CenteredTitle']))
+        elements.append(Spacer(1, 12))
+        elements.append(Paragraph(f"Generated on: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", styles['BodyText']))
+        elements.append(Spacer(1, 12))
+
+        # Personnel Info Table
+        info_data = [
+            ["Personnel ID", personnel_id],
+            ["Age", age],
+            ["Gender", gender],
+            ["Years of Service", years_of_service],
+            ["Post", post],
+            ["Posted City", posted_city],
+            ["BMI", bmi],
+            ["Risk Score", f"{risk_score:.1f}"],
+            ["Risk Category", risk_category]
+        ]
+        info_table = Table(info_data, hAlign='LEFT')
+        info_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#203A43")),
+            ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
+            ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+            ('BACKGROUND', (0, 0), (0, -1), colors.whitesmoke),
+            ('BACKGROUND', (1, 0), (1, -1), colors.lightgrey),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT')
+        ]))
+        elements.append(info_table)
+        elements.append(Spacer(1, 18))
+
+        # Recommendations Section
+        elements.append(Paragraph("Personalized Recommendations", styles['SubHeader']))
+        for rec in recommendations:
+            elements.append(Paragraph(f"• {rec}", styles['BodyText']))
+        elements.append(Spacer(1, 12))
+
+        # Vital Statistics
+        vitals_data = [
+            ["Systolic BP", systolic_bp],
+            ["Diastolic BP", diastolic_bp],
+            ["Heart Rate", heart_rate],
+            ["SpO₂", spo2],
+            ["Blood Sugar", fasting_blood_sugar],
+            ["Cholesterol", cholesterol],
+        ]
+        vitals_table = Table(vitals_data, hAlign='LEFT')
+        vitals_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
+            ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey)
+        ]))
+        elements.append(Paragraph("Vital Statistics", styles['SubHeader']))
+        elements.append(vitals_table)
+        elements.append(Spacer(1, 12))
+
+        # Save PDF
+        pdf.build(elements)
+        buffer.seek(0)
+
+        b64 = base64.b64encode(buffer.read()).decode()
+        href = f'<a href="data:application/pdf;base64,{b64}" download="PoliceHealthReport_{personnel_id}.pdf">📥 Download PDF Report</a>'
+        st.markdown(href, unsafe_allow_html=True)
+
+        st.success("✅ Report generated successfully! You can download your PDF above.")
+
