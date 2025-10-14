@@ -369,7 +369,7 @@ if st.button("Predict My Risk & Recommendations"):
         pdf = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=30)
         elements = []
         styles = getSampleStyleSheet()
-                styles.add(ParagraphStyle(name='CenteredTitle', alignment=1, fontSize=16, spaceAfter=10, textColor=colors.darkblue))
+        styles.add(ParagraphStyle(name='CenteredTitle', alignment=1, fontSize=16, spaceAfter=10, textColor=colors.darkblue))
         styles.add(ParagraphStyle(name='BodyText', fontSize=11, leading=15))
         styles.add(ParagraphStyle(name='SubHeader', fontSize=13, spaceAfter=8, textColor=colors.darkgoldenrod))
 
@@ -437,4 +437,5 @@ if st.button("Predict My Risk & Recommendations"):
         st.markdown(href, unsafe_allow_html=True)
 
         st.success("✅ Report generated successfully! You can download your PDF above.")
+
 
