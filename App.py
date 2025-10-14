@@ -167,7 +167,7 @@ with col2:
     fasting_blood_sugar = st.number_input("Fasting Blood Sugar (mg/dL) [70-130]", min_value=70, max_value=130)
     cholesterol = st.number_input("Cholesterol (mg/dL) [100-300]", min_value=100, max_value=300)
 with col3:
-    chronic_disease = st.selectbox("Chronic Disease", df['chronic_disease'].unique() + ["Other"] )
+    chronic_disease = st.selectbox("Chronic Disease", df['chronic_disease'].unique())
     if chronic_disease=="Other":
         chronic_disease_other = st.text_input("Please specify your chronic disease")
 
@@ -631,6 +631,7 @@ if st.button("Predict My Risk & Recommendations"):
     
     
     
+
 
 
 
