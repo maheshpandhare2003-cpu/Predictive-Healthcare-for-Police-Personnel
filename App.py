@@ -201,6 +201,8 @@ diet_protein = st.selectbox("Protein requirement met?", ["Low", "Medium", "High"
 diet_vitamins = st.selectbox("Vitamins requirement met?", ["Low", "Medium", "High"])
 diet_carbs = st.selectbox("Carbohydrates requirement met?", ["Low", "Medium", "High"])
 diet_minerals = st.selectbox("Minerals requirement met?", ["Low", "Medium", "High"])
+smoking = st.selectbox("Do you smoke?", ["No", "Occasionally", "Regularly"])
+alcohol = st.selectbox("Do you consume alcohol?", ["No", "Occasionally", "Regularly"])
 
 # Water Intake
 water_intake_liters = st.number_input("Daily Water Intake (Liters)", min_value=0.0, max_value=10.0, step=0.1)
@@ -371,8 +373,8 @@ if st.button("Predict My Risk & Recommendations"):
             'chronic_disease':[chronic_disease if chronic_disease!="Other" else chronic_disease_other],
             'sleep_hours':[sleep_hours],
             'exercise_mins_per_week':[exercise_mins_per_week],
-            'smoking':["No"],  # placeholder if needed
-            'alcohol':["No"],  # placeholder if needed
+            'smoking':[smoking],
+            'alcohol':[alcohol],
             'stress_level':[stress_level],
             'shift_pattern':[shift_pattern],
             'working_hours_per_week':[working_hours_per_week],
@@ -399,6 +401,17 @@ if st.button("Predict My Risk & Recommendations"):
      input_encoded = ct_encoder.transform(input_data)
         # Predict
      risk_score = xgb_model.predict(input_encoded)[0]
+     
+     if smoking == "Occasionally":
+      risk_score += 5
+     elif smoking == "Regularly":
+      risk_score += 10
+     # Add impact of alcohol
+     if alcohol == "Occasionally":
+      risk_score += 3
+     elif alcohol == "Regularly":
+      risk_score += 8
+      
      if risk_score<40: risk_category="✅ Normal"
      elif risk_score<70: risk_category="⚠ Borderline"
      else: risk_category="❌ High Risk"
@@ -618,6 +631,7 @@ if st.button("Predict My Risk & Recommendations"):
     
     
     
+
 
 
 
