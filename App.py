@@ -19,7 +19,7 @@ st.set_page_config(
 )
 
 # ---------------------------------------------------------
-# CUSTOM LIGHT STYLE
+# LIGHT THEME STYLE
 # ---------------------------------------------------------
 st.markdown("""
 <style>
@@ -93,54 +93,70 @@ bmi = round(weight_kg / ((height_cm / 100) ** 2), 1)
 st.text_input("BMI", value=bmi, disabled=True)
 
 # ---------------------------------------------------------
-# HEALTHCARE SECTION
+# VITAL SIGNS SECTION (Low / Normal / High)
 # ---------------------------------------------------------
-st.header("🏥 Healthcare Scheme & Awareness")
+st.header("❤️ Vital Signs (Categorical Levels)")
 
-col1, col2 = st.columns(2)
-with col1:
-    healthcare_scheme = st.selectbox("Healthcare Scheme", df['healthcare_scheme'].unique())
-    healthcare_scheme_other = st.text_input("Specify if Other") if healthcare_scheme == "Other" else None
-with col2:
-    wellness_program = st.radio("Wellness Program Provided?", ["Yes", "No", "Sometimes"])
-
-# ---------------------------------------------------------
-# VITAL SIGNS SECTION
-# ---------------------------------------------------------
-st.header("❤️ Vital Signs")
+def get_bp_value(category):
+    if category == "Low":
+        return 95, 65
+    elif category == "Normal":
+        return 120, 80
+    else:
+        return 150, 100
 
 col1, col2, col3 = st.columns(3)
 with col1:
-    systolic_bp = st.number_input("Systolic BP (mmHg)", min_value=90, max_value=180)
-    diastolic_bp = st.number_input("Diastolic BP (mmHg)", min_value=60, max_value=120)
+    bp_level = st.selectbox("Blood Pressure Level", ["Low", "Normal", "High"])
+    systolic_bp, diastolic_bp = get_bp_value(bp_level)
 with col2:
-    heart_rate = st.number_input("Heart Rate (bpm)", min_value=50, max_value=120)
-    spo2 = st.number_input("SpO₂ (%)", min_value=90, max_value=100)
+    heart_status = st.selectbox("Heart Rate Level", ["Low", "Normal", "High"])
+    heart_rate = 55 if heart_status == "Low" else 80 if heart_status == "Normal" else 110
 with col3:
-    fasting_blood_sugar = st.number_input("Fasting Blood Sugar (mg/dL)", min_value=70, max_value=130)
-    cholesterol = st.number_input("Cholesterol (mg/dL)", min_value=100, max_value=300)
+    spo2_status = st.selectbox("Oxygen Level", ["Low", "Normal"])
+    spo2 = 92 if spo2_status == "Low" else 98
+
+col1, col2 = st.columns(2)
+with col1:
+    sugar_status = st.selectbox("Fasting Blood Sugar Level", ["Low", "Normal", "High"])
+    fasting_blood_sugar = 80 if sugar_status == "Low" else 100 if sugar_status == "Normal" else 125
+with col2:
+    chol_status = st.selectbox("Cholesterol Level", ["Low", "Normal", "High"])
+    cholesterol = 150 if chol_status == "Low" else 200 if chol_status == "Normal" else 270
 
 chronic_disease = st.selectbox("Chronic Disease", df['chronic_disease'].unique())
 chronic_disease_other = st.text_input("Specify if Other") if chronic_disease == "Other" else None
 
 # ---------------------------------------------------------
-# LIFESTYLE SECTION
+# LIFESTYLE SECTION (Exercise conditional)
 # ---------------------------------------------------------
 st.header("🏋️ Lifestyle & Physical Health")
 
-col1, col2, col3 = st.columns(3)
-with col1:
-    exercise_mins_per_week = st.number_input("Exercise Minutes per Week", min_value=0, max_value=1000)
-with col2:
-    sleep_hours = st.number_input("Sleep Hours per Day", min_value=1, max_value=24)
-with col3:
-    water_intake_liters = st.number_input("Daily Water Intake (Liters)", min_value=0.0, max_value=10.0, step=0.1)
+do_exercise = st.radio("Do you exercise?", ["Yes", "No"])
+if do_exercise == "Yes":
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        exercise_mins_per_week = st.number_input("Exercise Minutes per Week", min_value=10, max_value=1000)
+    with col2:
+        sleep_hours = st.number_input("Sleep Hours per Day", min_value=1, max_value=24)
+    with col3:
+        water_intake_liters = st.number_input("Daily Water Intake (Liters)", min_value=0.0, max_value=10.0, step=0.1)
+else:
+    exercise_mins_per_week = 0
+    col2, col3 = st.columns(2)
+    with col2:
+        sleep_hours = st.number_input("Sleep Hours per Day", min_value=1, max_value=24)
+    with col3:
+        water_intake_liters = st.number_input("Daily Water Intake (Liters)", min_value=0.0, max_value=10.0, step=0.1)
 
 col1, col2 = st.columns(2)
 with col1:
     smoking = st.selectbox("Do You Smoke?", ["No", "Occasionally", "Regularly"])
 with col2:
     alcohol = st.selectbox("Do You Consume Alcohol?", ["No", "Occasionally", "Regularly"])
+
+# Wellness Program (moved below Alcohol)
+wellness_program = st.radio("Wellness Program Provided?", ["Yes", "No", "Sometimes"])
 
 # ---------------------------------------------------------
 # OCCUPATIONAL SECTION
@@ -201,16 +217,10 @@ if st.button("🔍 Predict My Risk"):
         'stress_level': [stress_level],
         'shift_pattern': [shift_pattern],
         'working_hours_per_week': [working_hours_per_week],
-        'healthcare_scheme': [healthcare_scheme_other if healthcare_scheme == "Other" and healthcare_scheme_other else healthcare_scheme],
+        'healthcare_scheme': [df['healthcare_scheme'].unique()[0]],
         'technological_support': ["Low"],
         'predictive_system_usage': ["Yes"]
     })
-
-    numeric_cols = ['pollution_index','city_workload_index','age','years_of_service','height_cm','weight_kg','bmi',
-                    'systolic_bp','diastolic_bp','heart_rate','spo2','fasting_blood_sugar','cholesterol',
-                    'sleep_hours','exercise_mins_per_week','stress_level','working_hours_per_week']
-    for col in numeric_cols:
-        input_data[col] = pd.to_numeric(input_data[col], errors='coerce')
 
     input_data.fillna("Unknown", inplace=True)
 
@@ -224,14 +234,12 @@ if st.button("🔍 Predict My Risk"):
     try:
         input_encoded = ct_encoder.transform(input_data)
     except Exception:
-        st.warning("⚠ Some inputs were not recognized by the encoder. Adjusting automatically...")
         for col in categorical_cols:
             if col in input_data.columns:
                 input_data[col] = input_data[col].apply(lambda x: x if x in df[col].unique() else df[col].unique()[0])
         input_encoded = ct_encoder.transform(input_data)
 
     risk_score = float(xgb_model.predict(input_encoded)[0])
-
     if smoking == "Occasionally": risk_score += 5
     elif smoking == "Regularly": risk_score += 10
     if alcohol == "Occasionally": risk_score += 3
@@ -249,7 +257,7 @@ if st.button("🔍 Predict My Risk"):
     st.write(f"**Category:** {risk_category}")
 
     # ---------------------------------------------------------
-    # PDF REPORT (FULL DATA + RECOMMENDATIONS)
+    # PDF REPORT
     # ---------------------------------------------------------
     buffer = io.BytesIO()
     pdf = SimpleDocTemplate(buffer, pagesize=A4)
@@ -261,53 +269,31 @@ if st.button("🔍 Predict My Risk"):
     elements.append(Paragraph(f"Generated on: {datetime.datetime.now().strftime('%d-%m-%Y %H:%M:%S')}", styles['Normal']))
     elements.append(Spacer(1, 20))
 
-    # --- Input Data Table ---
+    # Replace numeric vitals with text labels
+    input_data_display = input_data.copy()
+    input_data_display['Blood Pressure'] = bp_level
+    input_data_display['Heart Rate'] = heart_status
+    input_data_display['SpO2'] = spo2_status
+    input_data_display['Fasting Sugar'] = sugar_status
+    input_data_display['Cholesterol'] = chol_status
+    input_data_display['Exercise'] = "No Exercise" if exercise_mins_per_week == 0 else f"{exercise_mins_per_week} mins/week"
+
+    # --- Table ---
     elements.append(Paragraph("Personnel & Health Information", styles['Heading2']))
-    data_rows = [[k, str(v[0])] for k, v in input_data.to_dict().items()]
+    data_rows = [[k, str(v[0])] for k, v in input_data_display.to_dict().items()]
     table = Table(data_rows, colWidths=[200, 300])
     table.setStyle(TableStyle([
         ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
-        ('BACKGROUND', (0,0), (-1,0), colors.lightgrey),
         ('FONTNAME', (0,0), (-1,-1), 'Helvetica'),
         ('FONTSIZE', (0,0), (-1,-1), 9),
-        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
     ]))
     elements.append(table)
     elements.append(Spacer(1, 20))
 
-    # --- Risk Assessment ---
     elements.append(Paragraph("Risk Assessment Summary", styles['Heading2']))
     elements.append(Paragraph(f"Risk Score: {risk_score:.1f}", styles['Normal']))
     elements.append(Paragraph(f"Risk Category: {risk_category}", styles['Normal']))
     elements.append(Spacer(1, 20))
-
-    # --- Recommendations ---
-    elements.append(Paragraph("Personalized Recommendations", styles['Heading2']))
-    recommendations = []
-    if risk_category == "✅ Normal":
-        recommendations.append("Maintain your current healthy lifestyle and regular check-ups.")
-    elif risk_category == "⚠ Borderline":
-        recommendations.append("Pay attention to your diet, exercise regularly, and monitor vital signs.")
-    else:
-        recommendations.append("Consult a healthcare professional immediately and reduce risk factors.")
-
-    if sleep_hours < 6:
-        recommendations.append("Increase your sleep to at least 7 hours per day.")
-    if exercise_mins_per_week < 60:
-        recommendations.append("Include at least 60 minutes of exercise per week.")
-    if smoking != "No":
-        recommendations.append("Consider quitting smoking to reduce long-term risk.")
-    if alcohol != "No":
-        recommendations.append("Limit or stop alcohol consumption.")
-    if stress_level >= 7:
-        recommendations.append("High stress detected — try meditation or yoga sessions.")
-
-    for rec in recommendations:
-        elements.append(Paragraph(f"• {rec}", styles['Normal']))
-
-    elements.append(Spacer(1, 30))
-    elements.append(Paragraph("End of Report", styles['Heading3']))
-    elements.append(Paragraph("© 2025 Police Health Analytics", styles['Normal']))
 
     pdf.build(elements)
     buffer.seek(0)
