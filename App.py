@@ -15,11 +15,11 @@ from reportlab.lib import colors
 st.set_page_config(
     page_title="Predictive Healthcare for Police Personnel",
     page_icon="—Pngtree—gold police officer badge_7258551.png",
-    layout="wide"  # ✅ Full-screen
+    layout="wide"
 )
 
 # ---------------------------------------------------------
-# CUSTOM LIGHT THEME STYLE
+# CUSTOM LIGHT STYLE
 # ---------------------------------------------------------
 st.markdown("""
 <style>
@@ -248,29 +248,72 @@ if st.button("🔍 Predict My Risk"):
     st.write(f"**Risk Score:** {risk_score:.1f}")
     st.write(f"**Category:** {risk_category}")
 
-    st.subheader("💡 Personalized Recommendations")
-    if risk_category == "✅ Normal":
-        st.success("Maintain your current healthy lifestyle and regular check-ups.")
-    elif risk_category == "⚠ Borderline":
-        st.warning("Pay attention to your diet, exercise, and vital monitoring.")
-    else:
-        st.error("High risk! Consult a healthcare professional immediately.")
-
+    # ---------------------------------------------------------
+    # PDF REPORT (FULL DATA + RECOMMENDATIONS)
+    # ---------------------------------------------------------
     buffer = io.BytesIO()
     pdf = SimpleDocTemplate(buffer, pagesize=A4)
     styles = getSampleStyleSheet()
-    elements = [
-        Paragraph("Predictive Healthcare Report", styles['Title']),
-        Spacer(1, 12),
-        Paragraph(f"Risk Score: {risk_score:.1f}", styles['Normal']),
-        Paragraph(f"Risk Category: {risk_category}", styles['Normal']),
-        Spacer(1, 12)
-    ]
+    elements = []
+
+    elements.append(Paragraph("Predictive Healthcare Report", styles['Title']))
+    elements.append(Spacer(1, 12))
+    elements.append(Paragraph(f"Generated on: {datetime.datetime.now().strftime('%d-%m-%Y %H:%M:%S')}", styles['Normal']))
+    elements.append(Spacer(1, 20))
+
+    # --- Input Data Table ---
+    elements.append(Paragraph("Personnel & Health Information", styles['Heading2']))
+    data_rows = [[k, str(v[0])] for k, v in input_data.to_dict().items()]
+    table = Table(data_rows, colWidths=[200, 300])
+    table.setStyle(TableStyle([
+        ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
+        ('BACKGROUND', (0,0), (-1,0), colors.lightgrey),
+        ('FONTNAME', (0,0), (-1,-1), 'Helvetica'),
+        ('FONTSIZE', (0,0), (-1,-1), 9),
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+    ]))
+    elements.append(table)
+    elements.append(Spacer(1, 20))
+
+    # --- Risk Assessment ---
+    elements.append(Paragraph("Risk Assessment Summary", styles['Heading2']))
+    elements.append(Paragraph(f"Risk Score: {risk_score:.1f}", styles['Normal']))
+    elements.append(Paragraph(f"Risk Category: {risk_category}", styles['Normal']))
+    elements.append(Spacer(1, 20))
+
+    # --- Recommendations ---
+    elements.append(Paragraph("Personalized Recommendations", styles['Heading2']))
+    recommendations = []
+    if risk_category == "✅ Normal":
+        recommendations.append("Maintain your current healthy lifestyle and regular check-ups.")
+    elif risk_category == "⚠ Borderline":
+        recommendations.append("Pay attention to your diet, exercise regularly, and monitor vital signs.")
+    else:
+        recommendations.append("Consult a healthcare professional immediately and reduce risk factors.")
+
+    if sleep_hours < 6:
+        recommendations.append("Increase your sleep to at least 7 hours per day.")
+    if exercise_mins_per_week < 60:
+        recommendations.append("Include at least 60 minutes of exercise per week.")
+    if smoking != "No":
+        recommendations.append("Consider quitting smoking to reduce long-term risk.")
+    if alcohol != "No":
+        recommendations.append("Limit or stop alcohol consumption.")
+    if stress_level >= 7:
+        recommendations.append("High stress detected — try meditation or yoga sessions.")
+
+    for rec in recommendations:
+        elements.append(Paragraph(f"• {rec}", styles['Normal']))
+
+    elements.append(Spacer(1, 30))
+    elements.append(Paragraph("End of Report", styles['Heading3']))
+    elements.append(Paragraph("© 2025 Police Health Analytics", styles['Normal']))
+
     pdf.build(elements)
     buffer.seek(0)
 
     st.download_button(
-        label="📥 Download PDF Report",
+        label="📥 Download Full PDF Report",
         data=buffer,
         file_name=f"police_health_report_{personnel_id}.pdf",
         mime="application/pdf"
