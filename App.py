@@ -10,7 +10,7 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
 
 # -----------------------
-# PAGE CONFIG
+# PAGE CONFIG (simplified)
 # -----------------------
 st.set_page_config(
     page_title="Predictive Healthcare for Police Personnel",
@@ -39,7 +39,7 @@ with col_logo:
         pass
 with col_title:
     st.title("Predictive Healthcare for Police Personnel")
-    st.caption("Personalized Risk Assessment — with lifestyle-based vitals estimation")
+    st.caption("Personalized Risk Assessment — simplified UI")
 
 # -----------------------
 # Load dataset & model
@@ -54,16 +54,31 @@ xgb_model = joblib.load("xgb_model.pkl")
 def get_vital_value(level, low, normal, high):
     return low if level == "Low" else normal if level == "Normal" else high
 
+def qualitative_label_from_numeric(value, breaks):
+    low_max, normal_max = breaks
+    if value <= low_max:
+        return "Low"
+    elif value <= normal_max:
+        return "Normal"
+    else:
+        return "High"
+
 def safe_transform(encoder, X, df_ref, categorical_cols):
+    """Safely transform even if some columns are missing in df_ref."""
     try:
         return encoder.transform(X)
     except Exception:
         X2 = X.copy()
         for col in categorical_cols:
             if col in X2.columns:
-                known = list(df_ref[col].dropna().unique())
-                if known:
-                    X2[col] = X2[col].apply(lambda v: v if v in known else known[0])
+                if col in df_ref.columns:
+                    known = list(df_ref[col].dropna().unique())
+                    if known:
+                        X2[col] = X2[col].apply(lambda v: v if v in known else known[0])
+                    else:
+                        X2[col] = X2[col].fillna("Unknown")
+                else:
+                    X2[col] = X2[col].fillna("Unknown")
         return encoder.transform(X2)
 
 # -----------------------
@@ -94,64 +109,28 @@ bmi = round(weight_kg / ((height_cm/100)**2), 1)
 st.text_input("BMI", value=bmi, disabled=True)
 
 # -----------------------
-# ESTIMATED VITALS
+# VITALS
 # -----------------------
-st.header("❤️ Vital Signs — Estimated Automatically")
+st.header("❤️ Vital Signs (select level — model uses numeric equivalents)")
+col1, col2, col3 = st.columns(3)
+with col1:
+    bp_level = st.selectbox("Blood Pressure Level", ["Low","Normal","High"])
+    systolic_bp = get_vital_value(bp_level, 95, 120, 150)
+    diastolic_bp = get_vital_value(bp_level, 65, 80, 100)
+with col2:
+    heart_level = st.selectbox("Heart Rate Level", ["Low","Normal","High"])
+    heart_rate = get_vital_value(heart_level, 55, 80, 110)
+with col3:
+    spo2_level = st.selectbox("SpO₂ Level", ["Low","Normal"])
+    spo2 = get_vital_value(spo2_level, 92, 98, 98)
 
-# Blood Pressure
-bp_level = st.selectbox("How would you describe your daily stress & salt intake?",
-    ["Low stress, low salt", "Moderate stress & salt", "High stress, high salt"])
-if bp_level == "Low stress, low salt":
-    bp_status = "Low"
-elif bp_level == "Moderate stress & salt":
-    bp_status = "Normal"
-else:
-    bp_status = "High"
-systolic_bp = get_vital_value(bp_status, 95, 120, 150)
-diastolic_bp = get_vital_value(bp_status, 65, 80, 100)
-
-# Heart Rate
-activity = st.selectbox("How active are you physically?", ["Very active", "Moderately active", "Sedentary"])
-if activity == "Very active":
-    heart_status = "Low"
-elif activity == "Moderately active":
-    heart_status = "Normal"
-else:
-    heart_status = "High"
-heart_rate = get_vital_value(heart_status, 60, 80, 110)
-
-# Estimate Cholesterol
-st.subheader("Estimate Cholesterol Level")
-food_oil = st.selectbox("How often do you eat fried/oily food?", ["Rarely", "Sometimes", "Frequently"])
-food_type = st.radio("Do you eat more of veg or non-veg?", ["Veg", "Non-Veg", "Mix"])
-if food_oil == "Rarely" and food_type == "Veg":
-    chol_status = "Low"
-elif food_oil == "Sometimes" or food_type == "Mix":
-    chol_status = "Normal"
-else:
-    chol_status = "High"
-cholesterol = get_vital_value(chol_status, 150, 200, 270)
-
-# Estimate Blood Sugar
-st.subheader("Estimate Fasting Blood Sugar Level")
-sweets = st.selectbox("How often do you eat sweets?", ["Rarely", "Sometimes", "Daily"])
-sleep_hours = st.number_input("Sleep hours per day", min_value=1, max_value=24)
-if sweets == "Daily" or sleep_hours < 6:
-    sugar_status = "High"
-elif sweets == "Sometimes":
-    sugar_status = "Normal"
-else:
-    sugar_status = "Low"
-fasting_blood_sugar = get_vital_value(sugar_status, 70, 100, 130)
-
-# Estimate SpO2
-st.subheader("Estimate Oxygen Level (SpO₂)")
-smoking = st.selectbox("Do you smoke?", ["No", "Occasionally", "Regularly"])
-if smoking == "Regularly" or pollution_index > 80:
-    spo2_status = "Low"
-else:
-    spo2_status = "Normal"
-spo2 = get_vital_value(spo2_status, 93, 98, 98)
+col1, col2 = st.columns(2)
+with col1:
+    sugar_level = st.selectbox("Fasting Blood Sugar Level", ["Low","Normal","High"])
+    fasting_blood_sugar = get_vital_value(sugar_level, 70, 100, 125)
+with col2:
+    cholesterol_level = st.selectbox("Cholesterol Level", ["Low","Normal","High"])
+    cholesterol = get_vital_value(cholesterol_level, 150, 200, 270)
 
 chronic_disease = st.selectbox("Chronic Disease", df['chronic_disease'].unique())
 if chronic_disease == "Other":
@@ -160,37 +139,29 @@ else:
     chronic_disease_other = chronic_disease
 
 # -----------------------
-# Exercise & Diet (shortened)
+# LIFESTYLE
 # -----------------------
-st.header("🏋️ Lifestyle & Diet")
-do_exercise = st.radio("Do you exercise regularly?", ["Yes", "No"])
-exercise_mins_per_week = st.number_input("Minutes of exercise per week", min_value=0, max_value=2000, step=5) if do_exercise=="Yes" else 0
+st.header("🏋️ Lifestyle & Physical Health")
 
-alcohol = st.selectbox("Do you consume alcohol?", ["No", "Occasionally", "Regularly"])
-wellness_program = st.radio("Wellness Program Provided?", ["Yes","No","Sometimes"])
-
-# Simple diet type indicator
-diet_type = st.radio("Your usual food type?", ["Veg", "Non-Veg", "Mix"])
-if diet_type == "Veg":
-    diet_category = "Low"
-elif diet_type == "Mix":
-    diet_category = "Normal"
+do_exercise = st.radio("Do you exercise?", ["Yes", "No"])
+if do_exercise == "Yes":
+    exercise_mins_per_week = st.number_input("Exercise minutes per week", min_value=0, max_value=10000, step=5)
+    exercise_types = st.multiselect("Select exercise types", ["Walking","Running","Jogging","Swimming","Cycling","Weight training","Yoga"])
 else:
-    diet_category = "High"
+    exercise_mins_per_week = 0
+    exercise_types = []
+
+sleep_hours = st.number_input("Sleep hours per day", min_value=1, max_value=24)
+smoking = st.selectbox("Do you smoke?", ["No","Occasionally","Regularly"])
+alcohol = st.selectbox("Do you consume alcohol?", ["No","Occasionally","Regularly"])
+wellness_program = st.radio("Wellness Program Provided by Department?", ["Yes","No","Sometimes"])
 
 # -----------------------
-# Mental & Work
+# PREDICTION & REPORT
 # -----------------------
-st.header("💼 Work & Stress")
-shift_pattern = st.selectbox("Shift Pattern", ["Day","Night","Rotational"])
-working_hours_per_week = st.number_input("Working hours per week", min_value=20, max_value=120, step=1)
-stress_level = int(np.clip(5 + (working_hours_per_week/20) + (0 if do_exercise=="Yes" else 2), 1, 10))
-mood = st.selectbox("How do you feel today?", ["😊 Happy","😐 Neutral","😔 Sad","😟 Stressed","😡 Angry"])
-mindfulness = st.slider("Minutes of Mindfulness / Meditation Everyday", 0, 60, 0)
+st.markdown("---")
+st.header("🩺 Prediction & Report")
 
-# -----------------------
-# Predict
-# -----------------------
 if st.button("Predict My Risk & Download PDF"):
     input_data = pd.DataFrame({
         'personnel_id':[personnel_id],
@@ -210,22 +181,23 @@ if st.button("Predict My Risk & Download PDF"):
         'spo2':[spo2],
         'fasting_blood_sugar':[fasting_blood_sugar],
         'cholesterol':[cholesterol],
-        'chronic_disease':[chronic_disease_other],
+        'chronic_disease':[chronic_disease_other if chronic_disease_other else "None"],
         'sleep_hours':[sleep_hours],
         'exercise_mins_per_week':[exercise_mins_per_week],
         'smoking':[smoking],
         'alcohol':[alcohol],
-        'stress_level':[stress_level],
-        'shift_pattern':[shift_pattern],
-        'working_hours_per_week':[working_hours_per_week],
-        'healthcare_scheme':[df['healthcare_scheme'].iloc[0]],
+        'shift_pattern':["Day"],
+        'stress_level':[5],
         'technological_support':["Low"],
-        'predictive_system_usage':["Yes"],
-        'diet_category':[diet_category]
+        'predictive_system_usage':["Yes"]
     })
 
-    categorical_cols = ['post','posted_city','gender','chronic_disease','smoking','alcohol',
-                        'shift_pattern','healthcare_scheme','technological_support','predictive_system_usage','diet_category']
+    input_data.fillna("Unknown", inplace=True)
+    categorical_cols = [c for c in [
+        'post','posted_city','gender','chronic_disease','smoking','alcohol',
+        'shift_pattern','healthcare_scheme','technological_support','predictive_system_usage'
+    ] if c in input_data.columns]
+
     input_encoded = safe_transform(ct_encoder, input_data, df, categorical_cols)
     risk_score = float(xgb_model.predict(input_encoded)[0])
 
@@ -241,33 +213,67 @@ if st.button("Predict My Risk & Download PDF"):
     else:
         risk_category = "❌ High Risk"
 
-    st.subheader(f"Your Risk Category: {risk_category}")
-    st.write(f"Estimated Risk Score: {risk_score:.1f}")
+    st.markdown("### Results")
+    st.write(f"**Risk Score:** {risk_score:.1f}")
+    st.write(f"**Risk Category:** {risk_category}")
 
-    # PDF
+    recommendations = ["Maintain a healthy lifestyle."] if risk_category == "✅ Normal" else \
+                      ["Pay attention to diet and rest."] if risk_category == "⚠ Borderline" else \
+                      ["Consult a healthcare professional immediately."]
+
+    # -----------------------
+    # PDF Generation
+    # -----------------------
     buffer = io.BytesIO()
     pdf = SimpleDocTemplate(buffer, pagesize=A4)
     styles = getSampleStyleSheet()
-    styles.add(ParagraphStyle(name='Head', fontSize=14, spaceAfter=6, alignment=1))
-    elems=[]
-    elems.append(Paragraph("Predictive Healthcare Report", styles['Head']))
-    elems.append(Spacer(1,8))
-    table = Table([
-        ["Blood Pressure", bp_status],
-        ["Heart Rate", heart_status],
-        ["Cholesterol", chol_status],
-        ["Fasting Blood Sugar", sugar_status],
-        ["SpO₂", spo2_status],
-        ["Diet Type", diet_type],
-        ["Exercise", do_exercise],
-        ["Smoking", smoking],
-        ["Alcohol", alcohol],
-        ["Risk Category", risk_category]
-    ], colWidths=[180,300])
-    table.setStyle(TableStyle([('GRID',(0,0),(-1,-1),0.3,colors.grey),('FONTSIZE',(0,0),(-1,-1),10)]))
-    elems.append(table)
-    elems.append(Spacer(1,10))
-    elems.append(Paragraph(f"Generated on: {datetime.datetime.now().strftime('%d-%m-%Y %H:%M:%S')}", styles['Normal']))
-    pdf.build(elems)
+    elements = []
+
+    try:
+        logo = Image("—Pngtree—gold police officer badge_7258551.png", width=60, height=60)
+        logo.hAlign = 'CENTER'
+        elements.append(logo)
+        elements.append(Spacer(1,8))
+    except:
+        pass
+
+    elements.append(Paragraph("Predictive Healthcare Report", styles['Title']))
+    elements.append(Spacer(1,8))
+    elements.append(Paragraph(f"Generated on: {datetime.datetime.now().strftime('%d-%m-%Y %H:%M:%S')}", styles['Normal']))
+    elements.append(Spacer(1,12))
+
+    vitals_rows = [
+        ["Blood Pressure", bp_level],
+        ["Heart Rate", heart_level],
+        ["SpO₂", spo2_level],
+        ["Fasting Blood Sugar", sugar_level],
+        ["Cholesterol", cholesterol_level]
+    ]
+    vitals_table = Table(vitals_rows, colWidths=[180, 320])
+    vitals_table.setStyle(TableStyle([('GRID',(0,0),(-1,-1),0.3,colors.grey)]))
+    elements.append(vitals_table)
+    elements.append(Spacer(1,10))
+
+    elements.append(Paragraph(f"Risk Category: {risk_category}", styles['Heading2']))
+    elements.append(Paragraph(f"Risk Score: {risk_score:.1f}", styles['Normal']))
+    elements.append(Spacer(1,8))
+
+    elements.append(Paragraph("Recommendations", styles['Heading2']))
+    for rec in recommendations:
+        elements.append(Paragraph(f"• {rec}", styles['Normal']))
+
+    elements.append(Spacer(1,16))
+    elements.append(Paragraph("© 2025 Police Health Analytics", ParagraphStyle('Footer', fontSize=8, alignment=1)))
+
+    pdf.build(elements)
     buffer.seek(0)
-    st.download_button("📥 Download Full PDF Report", buffer, file_name=f"police_health_report_{personnel_id}.pdf", mime="application/pdf")
+
+    st.download_button(
+        label="📥 Download Full PDF Report",
+        data=buffer,
+        file_name=f"police_health_report_{personnel_id}.pdf",
+        mime="application/pdf"
+    )
+
+st.markdown("---")
+st.caption("© 2025 Police Health Analytics | Developed for Research and Awareness")
