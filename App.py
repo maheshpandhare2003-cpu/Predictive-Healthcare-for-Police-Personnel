@@ -5,28 +5,58 @@ import joblib
 import io
 import datetime
 from reportlab.lib.pagesizes import A4
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib import colors
 
 # ---------------------------------------------------------
-# BASIC PAGE CONFIGURATION
+# PAGE CONFIGURATION
 # ---------------------------------------------------------
 st.set_page_config(
     page_title="Predictive Healthcare for Police Personnel",
     page_icon="—Pngtree—gold police officer badge_7258551.png",
-    layout="centered"
+    layout="wide"  # ✅ Full-screen
 )
+
+# ---------------------------------------------------------
+# CUSTOM LIGHT THEME STYLE
+# ---------------------------------------------------------
+st.markdown("""
+<style>
+body {
+    background-color: #f8f9fa;
+    color: #212529;
+    font-family: "Helvetica", sans-serif;
+}
+h1, h2, h3, h4 {
+    color: #0a2647;
+}
+.stButton > button {
+    background-color: #0a2647;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.6em 1.5em;
+    font-weight: 600;
+}
+.stButton > button:hover {
+    background-color: #144272;
+}
+</style>
+""", unsafe_allow_html=True)
 
 # ---------------------------------------------------------
 # HEADER SECTION
 # ---------------------------------------------------------
-st.image("—Pngtree—gold police officer badge_7258551.png", width=100)
-st.title("Predictive Healthcare for Police Personnel")
-st.caption("Get your personalized risk assessment and preventive suggestions")
+col_logo, col_title = st.columns([1, 4])
+with col_logo:
+    st.image("—Pngtree—gold police officer badge_7258551.png", width=100)
+with col_title:
+    st.title("Predictive Healthcare for Police Personnel")
+    st.caption("Personalized Risk Assessment and Preventive Suggestions")
 
 # ---------------------------------------------------------
-# LOAD MODEL AND DATA
+# LOAD DATA & MODEL
 # ---------------------------------------------------------
 df = pd.read_csv("police_health_dataset.csv")
 ct_encoder = joblib.load("ct_encoder.pkl")
@@ -37,21 +67,28 @@ xgb_model = joblib.load("xgb_model.pkl")
 # ---------------------------------------------------------
 st.header("👤 Demographic Information")
 
-col1, col2 = st.columns(2)
+col1, col2, col3 = st.columns(3)
 with col1:
     personnel_id = st.number_input("Personnel ID", min_value=1, step=1)
     age = st.number_input("Age (years)", min_value=18, max_value=100)
     gender = st.radio("Gender", ["Male", "Female", "Other"])
-    years_of_service = st.number_input("Years of Service", min_value=0, step=1)
 with col2:
+    years_of_service = st.number_input("Years of Service", min_value=0, step=1)
     post = st.selectbox("Post", df['post'].unique())
     posted_city = st.selectbox("Posted City", df['posted_city'].unique())
-    city_data = df[df['posted_city'] == posted_city].iloc[0]
-    pollution_index = st.text_input("City Pollution Index", value=city_data['pollution_index'], disabled=True)
-    city_workload_index = st.text_input("City Workload Index", value=city_data['city_workload_index'], disabled=True)
+with col3:
+    city_data = df[df['posted_city'] == posted_city]
+    if not city_data.empty:
+        pollution_index = float(city_data['pollution_index'].iloc[0])
+        city_workload_index = float(city_data['city_workload_index'].iloc[0])
+    else:
+        pollution_index = 0.0
+        city_workload_index = 0.0
+    pollution_index = st.text_input("City Pollution Index", value=pollution_index, disabled=True)
+    city_workload_index = st.text_input("City Workload Index", value=city_workload_index, disabled=True)
+    height_cm = st.number_input("Height (cm)", min_value=120, max_value=250)
+    weight_kg = st.number_input("Weight (kg)", min_value=30, max_value=200)
 
-height_cm = st.number_input("Height (cm)", min_value=120, max_value=250)
-weight_kg = st.number_input("Weight (kg)", min_value=30, max_value=200)
 bmi = round(weight_kg / ((height_cm / 100) ** 2), 1)
 st.text_input("BMI", value=bmi, disabled=True)
 
@@ -59,6 +96,7 @@ st.text_input("BMI", value=bmi, disabled=True)
 # HEALTHCARE SECTION
 # ---------------------------------------------------------
 st.header("🏥 Healthcare Scheme & Awareness")
+
 col1, col2 = st.columns(2)
 with col1:
     healthcare_scheme = st.selectbox("Healthcare Scheme", df['healthcare_scheme'].unique())
@@ -73,8 +111,8 @@ st.header("❤️ Vital Signs")
 
 col1, col2, col3 = st.columns(3)
 with col1:
-    systolic_bp = st.number_input("Systolic BP (90–180)", min_value=90, max_value=180)
-    diastolic_bp = st.number_input("Diastolic BP (60–120)", min_value=60, max_value=120)
+    systolic_bp = st.number_input("Systolic BP (mmHg)", min_value=90, max_value=180)
+    diastolic_bp = st.number_input("Diastolic BP (mmHg)", min_value=60, max_value=120)
 with col2:
     heart_rate = st.number_input("Heart Rate (bpm)", min_value=50, max_value=120)
     spo2 = st.number_input("SpO₂ (%)", min_value=90, max_value=100)
@@ -90,20 +128,25 @@ chronic_disease_other = st.text_input("Specify if Other") if chronic_disease == 
 # ---------------------------------------------------------
 st.header("🏋️ Lifestyle & Physical Health")
 
-col1, col2 = st.columns(2)
+col1, col2, col3 = st.columns(3)
 with col1:
     exercise_mins_per_week = st.number_input("Exercise Minutes per Week", min_value=0, max_value=1000)
-    sleep_hours = st.number_input("Sleep Hours per Day", min_value=1, max_value=24)
 with col2:
-    smoking = st.selectbox("Do You Smoke?", ["No", "Occasionally", "Regularly"])
-    alcohol = st.selectbox("Do You Consume Alcohol?", ["No", "Occasionally", "Regularly"])
+    sleep_hours = st.number_input("Sleep Hours per Day", min_value=1, max_value=24)
+with col3:
+    water_intake_liters = st.number_input("Daily Water Intake (Liters)", min_value=0.0, max_value=10.0, step=0.1)
 
-water_intake_liters = st.number_input("Daily Water Intake (Liters)", min_value=0.0, max_value=10.0, step=0.1)
+col1, col2 = st.columns(2)
+with col1:
+    smoking = st.selectbox("Do You Smoke?", ["No", "Occasionally", "Regularly"])
+with col2:
+    alcohol = st.selectbox("Do You Consume Alcohol?", ["No", "Occasionally", "Regularly"])
 
 # ---------------------------------------------------------
 # OCCUPATIONAL SECTION
 # ---------------------------------------------------------
 st.header("💼 Occupational Health")
+
 col1, col2 = st.columns(2)
 with col1:
     shift_pattern = st.selectbox("Shift Pattern", ["Day", "Night", "Rotational"])
@@ -115,7 +158,6 @@ with col2:
 # ---------------------------------------------------------
 st.header("🧠 Mental Health & Wellbeing")
 
-# Basic stress calculator
 stress_level = 5
 if sleep_hours < 6: stress_level += 2
 if working_hours_per_week > 50: stress_level += 2
@@ -127,8 +169,11 @@ mood = st.selectbox("Your Current Mood", ["😊 Happy", "😐 Neutral", "😔 Sa
 st.progress(stress_level / 10, text=f"Stress Level: {stress_level}/10")
 
 # ---------------------------------------------------------
-# PREDICTION BUTTON
+# PREDICTION SECTION
 # ---------------------------------------------------------
+st.markdown("---")
+st.header("🩺 Risk Prediction")
+
 if st.button("🔍 Predict My Risk"):
     input_data = pd.DataFrame({
         'personnel_id': [personnel_id],
@@ -148,7 +193,7 @@ if st.button("🔍 Predict My Risk"):
         'spo2': [spo2],
         'fasting_blood_sugar': [fasting_blood_sugar],
         'cholesterol': [cholesterol],
-        'chronic_disease': [chronic_disease if chronic_disease != "Other" else chronic_disease_other],
+        'chronic_disease': [chronic_disease_other if chronic_disease == "Other" and chronic_disease_other else chronic_disease],
         'sleep_hours': [sleep_hours],
         'exercise_mins_per_week': [exercise_mins_per_week],
         'smoking': [smoking],
@@ -156,28 +201,42 @@ if st.button("🔍 Predict My Risk"):
         'stress_level': [stress_level],
         'shift_pattern': [shift_pattern],
         'working_hours_per_week': [working_hours_per_week],
-        'healthcare_scheme': [healthcare_scheme if healthcare_scheme != "Other" else healthcare_scheme_other],
+        'healthcare_scheme': [healthcare_scheme_other if healthcare_scheme == "Other" and healthcare_scheme_other else healthcare_scheme],
         'technological_support': ["Low"],
         'predictive_system_usage': ["Yes"]
     })
 
-    # Ensure numeric columns
     numeric_cols = ['pollution_index','city_workload_index','age','years_of_service','height_cm','weight_kg','bmi',
                     'systolic_bp','diastolic_bp','heart_rate','spo2','fasting_blood_sugar','cholesterol',
                     'sleep_hours','exercise_mins_per_week','stress_level','working_hours_per_week']
     for col in numeric_cols:
         input_data[col] = pd.to_numeric(input_data[col], errors='coerce')
 
-    input_encoded = ct_encoder.transform(input_data)
+    input_data.fillna("Unknown", inplace=True)
+
+    categorical_cols = [
+        'post', 'posted_city', 'gender', 'chronic_disease', 'smoking', 'alcohol',
+        'shift_pattern', 'healthcare_scheme', 'technological_support', 'predictive_system_usage'
+    ]
+    for col in categorical_cols:
+        input_data[col] = input_data[col].astype(str)
+
+    try:
+        input_encoded = ct_encoder.transform(input_data)
+    except Exception:
+        st.warning("⚠ Some inputs were not recognized by the encoder. Adjusting automatically...")
+        for col in categorical_cols:
+            if col in input_data.columns:
+                input_data[col] = input_data[col].apply(lambda x: x if x in df[col].unique() else df[col].unique()[0])
+        input_encoded = ct_encoder.transform(input_data)
+
     risk_score = float(xgb_model.predict(input_encoded)[0])
 
-    # Adjust risk based on lifestyle
     if smoking == "Occasionally": risk_score += 5
     elif smoking == "Regularly": risk_score += 10
     if alcohol == "Occasionally": risk_score += 3
     elif alcohol == "Regularly": risk_score += 8
 
-    # Risk category
     if risk_score < 40:
         risk_category = "✅ Normal"
     elif risk_score < 70:
@@ -185,42 +244,28 @@ if st.button("🔍 Predict My Risk"):
     else:
         risk_category = "❌ High Risk"
 
-    # Display results
     st.subheader("📊 Health Risk Result")
     st.write(f"**Risk Score:** {risk_score:.1f}")
     st.write(f"**Category:** {risk_category}")
 
-    # ---------------------------------------------------------
-    # RECOMMENDATIONS
-    # ---------------------------------------------------------
     st.subheader("💡 Personalized Recommendations")
     if risk_category == "✅ Normal":
-        st.success("Maintain your current healthy lifestyle and continue regular check-ups.")
+        st.success("Maintain your current healthy lifestyle and regular check-ups.")
     elif risk_category == "⚠ Borderline":
-        st.warning("Pay attention to your diet, exercise regularly, and monitor your vital signs.")
+        st.warning("Pay attention to your diet, exercise, and vital monitoring.")
     else:
-        st.error("High risk detected! Consult a healthcare professional for immediate advice.")
+        st.error("High risk! Consult a healthcare professional immediately.")
 
-    # ---------------------------------------------------------
-    # PDF REPORT DOWNLOAD
-    # ---------------------------------------------------------
     buffer = io.BytesIO()
     pdf = SimpleDocTemplate(buffer, pagesize=A4)
     styles = getSampleStyleSheet()
-    elements = []
-
-    elements.append(Paragraph("Predictive Healthcare Report", styles['Title']))
-    elements.append(Spacer(1, 12))
-    data = [[k, str(v[0])] for k, v in input_data.to_dict().items()]
-    table = Table(data, colWidths=[200, 300])
-    table.setStyle(TableStyle([('GRID', (0,0), (-1,-1), 0.5, colors.grey)]))
-    elements.append(table)
-    elements.append(Spacer(1, 12))
-    elements.append(Paragraph(f"Risk Score: {risk_score:.1f}", styles['Normal']))
-    elements.append(Paragraph(f"Risk Category: {risk_category}", styles['Normal']))
-    elements.append(Spacer(1, 12))
-    elements.append(Paragraph(f"Report Generated On: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", styles['Normal']))
-
+    elements = [
+        Paragraph("Predictive Healthcare Report", styles['Title']),
+        Spacer(1, 12),
+        Paragraph(f"Risk Score: {risk_score:.1f}", styles['Normal']),
+        Paragraph(f"Risk Category: {risk_category}", styles['Normal']),
+        Spacer(1, 12)
+    ]
     pdf.build(elements)
     buffer.seek(0)
 
@@ -236,4 +281,3 @@ if st.button("🔍 Predict My Risk"):
 # ---------------------------------------------------------
 st.markdown("---")
 st.caption("© 2025 Police Health Analytics | Developed for Research and Awareness")
-
