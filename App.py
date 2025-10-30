@@ -1,4 +1,4 @@
-# --- FULL App.py (Final Updated Version with Auto SpO₂ Estimation) ---
+# App.py (Final Updated Version with Auto SpO₂ Estimation, Sleep in PDF, Manual Stress Override, and Suggestions)
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -40,6 +40,7 @@ with col_title:
     st.caption("Personalized Risk Assessment — simplified and enhanced UI")
 
 # --- LOAD DATA & MODEL ---
+# NOTE: Ensure these files are present in the same directory as this script.
 df = pd.read_csv("police_health_dataset.csv")
 ct_encoder = joblib.load("ct_encoder.pkl")
 xgb_model = joblib.load("xgb_model.pkl")
@@ -169,7 +170,8 @@ else:
 diet_type = st.selectbox("Diet Type", ["Balanced", "High-calorie", "Low-calorie", "High-sugar", "Custom"])
 diet_custom = st.text_input("Describe your diet (optional)") if diet_type == "Custom" else ""
 
-sleep_hours = st.number_input("Sleep hours per day", min_value=1, max_value=24)
+sleep_hours = st.number_input("Sleep hours per day", min_value=0.0, max_value=24.0, step=0.5)
+
 smoking = st.selectbox("Do you smoke?", ["No", "Occasionally", "Regularly"])
 alcohol = st.selectbox("Do you consume alcohol?", ["No", "Occasionally", "Regularly"])
 water_intake_liters = st.number_input("Daily Water Intake (Liters)", min_value=0.0, max_value=10.0, step=0.1)
@@ -185,7 +187,7 @@ st.header("💼 Occupational & Mental Health")
 shift_pattern = st.selectbox("Shift Pattern", ["Day", "Night", "Rotational"])
 working_hours_per_week = st.number_input("Working hours per week", min_value=1, max_value=120)
 
-# Stress calculation
+# Stress calculation (auto)
 stress_calc = 5
 if sleep_hours < 6: stress_calc += 3
 elif sleep_hours < 7: stress_calc += 2
@@ -196,7 +198,21 @@ elif working_hours_per_week > 40: stress_calc += 1
 if exercise_mins_per_week == 0: stress_calc += 2
 elif exercise_mins_per_week < 60: stress_calc += 1
 if shift_pattern.lower() in ["night", "rotational"]: stress_calc += 2
-stress_level = int(np.clip(stress_calc, 1, 10))
+auto_stress_level = int(np.clip(stress_calc, 1, 10))
+
+# Present option to override auto stress with Quick Select
+st.markdown("**Stress Level Selection**")
+stress_override = st.selectbox("Choose stress level input method", ["Auto-calculated", "Low", "Normal", "High"])
+if stress_override == "Auto-calculated":
+    stress_level = auto_stress_level
+else:
+    # Map manual selection to representative numeric value
+    if stress_override == "Low":
+        stress_level = 2
+    elif stress_override == "Normal":
+        stress_level = 5
+    else:  # High
+        stress_level = 8
 
 if stress_level <= 3:
     stress_category = "Low"
@@ -205,7 +221,10 @@ elif stress_level <= 6:
 else:
     stress_category = "High"
 
-st.progress(stress_level / 10, text=f"Stress Level: {stress_level}/10 — {stress_category}")
+# Show a progress bar (visual) and text
+st.progress(min(max(stress_level / 10.0, 0.0), 1.0))
+st.write(f"Stress Level: {stress_level}/10 — {stress_category}")
+
 mood = st.selectbox("How do you feel today?", ["😊 Happy", "😐 Neutral", "😔 Sad", "😟 Stressed", "😡 Angry"])
 mindfulness = st.slider("Minutes of Mindfulness / Meditation Everyday", 0, 60, 0)
 
@@ -253,9 +272,12 @@ if st.button("Predict My Risk & Download Report"):
     categorical_cols = ['post','posted_city','gender','chronic_disease','smoking','alcohol',
                         'shift_pattern','healthcare_scheme','technological_support','predictive_system_usage']
 
+    # Encode safely
     input_encoded = safe_transform(ct_encoder, input_data, df, categorical_cols)
+    # Model prediction
     risk_score = float(xgb_model.predict(input_encoded)[0])
 
+    # Minor heuristic adjustments
     if smoking == "Occasionally": risk_score += 5
     elif smoking == "Regularly": risk_score += 10
     if alcohol == "Occasionally": risk_score += 3
@@ -274,9 +296,10 @@ if st.button("Predict My Risk & Download Report"):
 
     # --- PDF REPORT ---
     buffer = io.BytesIO()
-    pdf = SimpleDocTemplate(buffer, pagesize=A4)
+    pdf = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=36, leftMargin=36, topMargin=36, bottomMargin=36)
     styles = getSampleStyleSheet()
-    styles.add(ParagraphStyle(name='CenterTitle', alignment=1, fontSize=14))
+    styles.add(ParagraphStyle(name='CenterTitle', alignment=1, fontSize=14, spaceAfter=8))
+    styles.add(ParagraphStyle(name='Small', fontSize=9))
     elements = []
     try:
         logo = Image("—Pngtree—gold police officer badge_7258551.png", width=60, height=60)
@@ -286,7 +309,7 @@ if st.button("Predict My Risk & Download Report"):
     except:
         pass
     elements.append(Paragraph("Predictive Healthcare Report", styles['CenterTitle']))
-    elements.append(Paragraph(f"Generated on: {datetime.datetime.now().strftime('%d-%m-%Y %H:%M:%S')}", styles['Normal']))
+    elements.append(Paragraph(f"Generated on: {datetime.datetime.now().strftime('%d-%m-%Y %H:%M:%S')}", styles['Small']))
     elements.append(Spacer(1,12))
 
     # DEMOGRAPHICS TABLE
@@ -302,7 +325,7 @@ if st.button("Predict My Risk & Download Report"):
         ["BMI", bmi]
     ]
     elements.append(Paragraph("Personnel & Demographics", styles['Heading2']))
-    elements.append(Table(demo_data, colWidths=[200, 300], style=[('GRID',(0,0),(-1,-1),0.3,colors.grey)]))
+    elements.append(Table(demo_data, colWidths=[180, 300], style=[('GRID',(0,0),(-1,-1),0.3,colors.grey), ('VALIGN',(0,0),(-1,-1),'MIDDLE')]))
     elements.append(Spacer(1,10))
 
     # VITALS
@@ -317,10 +340,11 @@ if st.button("Predict My Risk & Download Report"):
         ["SpO₂ Estimated", f"{spo2}%"],
         ["Sugar Level", sugar_level],
         ["Heart Rate Level", heart_level],
-        ["Heart Rate", f"{heart_rate} bpm"]
+        ["Heart Rate", f"{heart_rate} bpm"],
+        ["Sleep Hours (per day)", f"{sleep_hours}"]
     ]
-    elements.append(Paragraph("Vital Signs", styles['Heading2']))
-    elements.append(Table(vitals_data, colWidths=[200, 300], style=[('GRID',(0,0),(-1,-1),0.3,colors.grey)]))
+    elements.append(Paragraph("Vital Signs & Sleep", styles['Heading2']))
+    elements.append(Table(vitals_data, colWidths=[180, 300], style=[('GRID',(0,0),(-1,-1),0.3,colors.grey), ('VALIGN',(0,0),(-1,-1),'MIDDLE')]))
     elements.append(Spacer(1,10))
 
     # LIFESTYLE
@@ -338,7 +362,7 @@ if st.button("Predict My Risk & Download Report"):
         ["Wellness Program", wellness_program]
     ]
     elements.append(Paragraph("Lifestyle, Diet & Technology", styles['Heading2']))
-    elements.append(Table(lifestyle_data, colWidths=[200, 300], style=[('GRID',(0,0),(-1,-1),0.3,colors.grey)]))
+    elements.append(Table(lifestyle_data, colWidths=[180, 300], style=[('GRID',(0,0),(-1,-1),0.3,colors.grey), ('VALIGN',(0,0),(-1,-1),'TOP')]))
     elements.append(Spacer(1,10))
 
     # OCCUPATIONAL
@@ -352,7 +376,7 @@ if st.button("Predict My Risk & Download Report"):
         ["Current Health Details", current_health_details]
     ]
     elements.append(Paragraph("Occupational & Health Summary", styles['Heading2']))
-    elements.append(Table(occ_data, colWidths=[200, 300], style=[('GRID',(0,0),(-1,-1),0.3,colors.grey)]))
+    elements.append(Table(occ_data, colWidths=[180, 300], style=[('GRID',(0,0),(-1,-1),0.3,colors.grey), ('VALIGN',(0,0),(-1,-1),'MIDDLE')]))
     elements.append(Spacer(1,10))
 
     # RISK RESULT
@@ -362,11 +386,70 @@ if st.button("Predict My Risk & Download Report"):
     elements.append(Paragraph(f"Risk Score: {risk_score:.1f}", styles['Normal']))
     elements.append(Spacer(1,12))
 
+    # SUGGESTIONS / RECOMMENDATIONS (tailored)
+    elements.append(Paragraph("Suggestions & Recommendations", styles['Heading2']))
+    suggestions = []
+
+    # General suggestions based on risk category
+    if risk_category == "✅ Normal":
+        suggestions.append("Your current risk score is in the normal range. Continue with your healthy habits and periodic check-ups.")
+    elif risk_category == "⚠ Borderline":
+        suggestions.append("Borderline risk detected — consider lifestyle adjustments, schedule a medical check-up, and monitor key vitals regularly.")
+    else:
+        suggestions.append("High risk detected — seek medical evaluation promptly, review medications (if any), and follow a structured health program recommended by a clinician.")
+
+    # Sleep-related suggestions
+    if sleep_hours < 6:
+        suggestions.append("Increase sleep duration to 7–8 hours per night to support recovery and reduce stress.")
+    elif sleep_hours > 9:
+        suggestions.append("Very long sleep may indicate fatigue or underlying issues; discuss with a health professional if persistent.")
+
+    # BMI suggestions
+    if bmi >= 25 and bmi < 30:
+        suggestions.append("BMI indicates overweight — consider a balanced calorie-controlled diet and regular exercise.")
+    elif bmi >= 30:
+        suggestions.append("BMI indicates obesity — consult a clinician or dietitian for a structured weight management plan.")
+
+    # Exercise suggestions
+    if exercise_mins_per_week < 150:
+        suggestions.append("Aim for at least 150 minutes of moderate aerobic exercise per week, or 75 minutes of vigorous activity, plus strength training twice weekly.")
+    else:
+        suggestions.append("Good exercise consistency — maintain and diversify workouts (cardio + strength + flexibility).")
+
+    # Smoking & alcohol suggestions
+    if smoking != "No":
+        suggestions.append("Reducing or quitting smoking will significantly lower cardiovascular and respiratory risk. Seek support programs if needed.")
+    if alcohol == "Regularly":
+        suggestions.append("Consider reducing alcohol intake; consult services offering counseling or behavior change support if needed.")
+
+    # SpO2 and breathing
+    if spo2 < 95:
+        suggestions.append("Your estimated SpO₂ is lower than typical. If you experience persistent breathlessness or low readings, seek prompt medical attention.")
+
+    # Stress suggestions
+    if stress_category == "High":
+        suggestions.append("High stress levels noted. Consider stress-management strategies: regular mindfulness, short breaks during shift, counseling support, and better sleep hygiene.")
+
+    # Technology & monitoring
+    suggestions.append("Use wearable devices or periodic monitoring (BP monitor, glucometer) for trends rather than single readings. Share concerning patterns with your healthcare provider.")
+
+    # Add suggestions to PDF (each as a bullet-like paragraph)
+    for s in suggestions:
+        elements.append(Paragraph(f"• {s}", styles['Normal']))
+        elements.append(Spacer(1,4))
+
+    elements.append(Spacer(1,12))
+
+    # Closing note
+    elements.append(Paragraph("Note: This report is a screening and educational tool. It does not replace professional medical diagnosis. Please consult licensed healthcare professionals for personalized advice.", styles['Small']))
+
     pdf.build(elements)
     buffer.seek(0)
+    pdf_bytes = buffer.getvalue()
+
     st.download_button(
         label="📥 Download Full PDF Report",
-        data=buffer,
+        data=pdf_bytes,
         file_name=f"police_health_report_{personnel_id}.pdf",
         mime="application/pdf"
     )
@@ -374,4 +457,3 @@ if st.button("Predict My Risk & Download Report"):
 # --- FOOTER ---
 st.markdown("---")
 st.caption("© 2025 Police Health Analytics | Developed for Research and Awareness")
-
