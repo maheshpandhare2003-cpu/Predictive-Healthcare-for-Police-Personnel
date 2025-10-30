@@ -40,6 +40,7 @@ with col_title:
     st.caption("Personalized Risk Assessment — simplified and enhanced UI")
 
 # --- LOAD DATA & MODEL ---
+# NOTE: These files must be present in the app directory: police_health_dataset.csv, ct_encoder.pkl, xgb_model.pkl
 df = pd.read_csv("police_health_dataset.csv")
 ct_encoder = joblib.load("ct_encoder.pkl")
 xgb_model = joblib.load("xgb_model.pkl")
@@ -56,6 +57,7 @@ def safe_transform(encoder, X, df_ref, categorical_cols):
     except Exception:
         X2 = X.copy()
         for col in categorical_cols:
+            # if encoder expects the column, map unseen categories to a known value if possible
             if col in X2.columns and col in df_ref.columns:
                 known = list(df_ref[col].dropna().unique())
                 if known:
@@ -63,6 +65,7 @@ def safe_transform(encoder, X, df_ref, categorical_cols):
                 else:
                     X2[col] = X2[col].fillna("Unknown")
             else:
+                # create a safe fallback column (encoder may ignore unexpected columns but this keeps data consistent)
                 X2[col] = "Unknown"
         return encoder.transform(X2)
 
@@ -78,6 +81,7 @@ with col2:
     post = st.selectbox("Post", df['post'].unique())
     posted_city = st.selectbox("Posted City", df['posted_city'].unique())
 with col3:
+    # City-based indices (pulled from dataset)
     city_row = df[df['posted_city'] == posted_city]
     if not city_row.empty:
         pollution_index = float(city_row['pollution_index'].iloc[0])
@@ -85,10 +89,13 @@ with col3:
     else:
         pollution_index = 0.0
         city_workload_index = 0.0
+    # show city-level metrics clearly to user
+    st.metric(label="City Pollution Index", value=f"{pollution_index:.2f}")
+    st.metric(label="City Workload Index", value=f"{city_workload_index:.2f}")
     height_cm = st.number_input("Height (cm)", min_value=120, max_value=250)
     weight_kg = st.number_input("Weight (kg)", min_value=30, max_value=200)
 
-bmi = round(weight_kg / ((height_cm / 100) ** 2), 1)
+bmi = round(weight_kg / ((height_cm / 100) ** 2), 1) if height_cm > 0 else 0.0
 st.text_input("BMI", value=bmi, disabled=True)
 
 # --- CURRENT HEALTH DETAILS ---
@@ -101,27 +108,35 @@ current_health_details = ", ".join(health_conditions) if health_conditions else 
 
 # --- VITAL SIGNS (Simplified Inputs) ---
 st.header("❤️ Vital Signs")
-has_bp = st.radio("Do you have Blood Pressure (BP)?", ["No", "Yes"])
-if has_bp == "Yes":
-    bp_level = st.selectbox("BP Level", ["Low", "Normal", "High"])
+
+# Explicit BP issue question per request
+bp_issue = st.radio("Do you have a BP issue?", ["No", "Yes"])
+if bp_issue == "Yes":
+    bp_level = st.selectbox("BP Level (If you have BP issue, choose):", ["Low", "Normal", "High"])
 else:
+    # if user doesn't have a BP issue, backend should treat it as Normal (as requested)
     bp_level = "Normal"
+# convert selected qualitative BP level to numeric systolic/diastolic for model
 systolic_bp = get_numeric_from_level(bp_level, 95, 120, 150)
 diastolic_bp = get_numeric_from_level(bp_level, 65, 80, 100)
 
-has_cholesterol = st.radio("Do you have Cholesterol?", ["No", "Yes"])
+# Cholesterol input
+has_cholesterol = st.radio("Do you have Cholesterol issues?", ["No", "Yes"])
 if has_cholesterol == "Yes":
     cholesterol_level = st.selectbox("Cholesterol Level", ["Low", "Medium", "High"])
 else:
     cholesterol_level = "Medium"
 cholesterol = get_numeric_from_level(cholesterol_level, 150, 200, 270)
 
+# SpO2
 spo2_level = st.selectbox("SpO₂ Level", ["Low", "Normal"])
 spo2 = get_numeric_from_level(spo2_level, 92, 98, 98)
 
-sugar_level = st.selectbox("Fasting Blood Sugar Level", ["Low", "Normal", "High"])
+# Sugar level categorization (Low/Normal/High) as requested
+sugar_level = st.selectbox("Fasting Blood Sugar Level (qualitative)", ["Low", "Normal", "High"])
 fasting_blood_sugar = get_numeric_from_level(sugar_level, 70, 100, 125)
 
+# Heart rate
 heart_level = st.selectbox("Heart Rate Level", ["Low", "Normal", "High"])
 heart_rate = get_numeric_from_level(heart_level, 55, 80, 110)
 
@@ -142,22 +157,33 @@ else:
     exercise_mins_per_week = 0
     exercise_types = []
 
+# Diet — added to frontend and PDF (not used by backend model to avoid changing model)
+diet_type = st.selectbox("Diet Type", ["Balanced", "High-calorie", "Low-calorie", "High-sugar", "Custom"])
+if diet_type == "Custom":
+    diet_custom = st.text_input("Please describe your diet")
+else:
+    diet_custom = ""
+
 sleep_hours = st.number_input("Sleep hours per day", min_value=1, max_value=24)
 smoking = st.selectbox("Do you smoke?", ["No", "Occasionally", "Regularly"])
 alcohol = st.selectbox("Do you consume alcohol?", ["No", "Occasionally", "Regularly"])
 water_intake_liters = st.number_input("Daily Water Intake (Liters)", min_value=0.0, max_value=10.0, step=0.1)
 
-# --- WELLNESS / TECHNOLOGY / SCHEMES ---
+# Technological devices used — frontend + PDF only
+technological_devices = st.multiselect("Technological Devices Used for health (wearables/apps etc.)", ["Wearable (smartwatch/fitness band)", "Mobile Health App", "Telehealth Services", "BP Monitor", "Glucometer", "None"])
+
+# Wellness / technology / schemes
 wellness_program = st.radio("Wellness Programs Provided by Department?", ["Yes", "No", "Sometimes"])
 healthcare_scheme = st.selectbox("Healthcare Scheme Used", df['healthcare_scheme'].unique() if 'healthcare_scheme' in df.columns else ["Unknown"])
-technological_support = st.selectbox("Use of Technology in Health Monitoring", ["Low", "Medium", "High"])
-st.info("Healthcare scheme & technology use are included for analysis purposes.")
+technological_support = st.selectbox("Use of Technology in Health Monitoring (dept level)", ["Low", "Medium", "High"])
+st.info("Healthcare scheme, technology use and devices are included in the report (not changing the model).")
 
 # --- OCCUPATIONAL & MENTAL HEALTH ---
 st.header("💼 Occupational & Mental Health")
 shift_pattern = st.selectbox("Shift Pattern", ["Day", "Night", "Rotational"])
 working_hours_per_week = st.number_input("Working hours per week", min_value=1, max_value=120)
 
+# Stress calculation (same logic as before) and classification
 stress_calc = 5
 if sleep_hours < 6: stress_calc += 3
 elif sleep_hours < 7: stress_calc += 2
@@ -169,13 +195,23 @@ if exercise_mins_per_week == 0: stress_calc += 2
 elif exercise_mins_per_week < 60: stress_calc += 1
 if shift_pattern.lower() in ["night", "rotational"]: stress_calc += 2
 stress_level = int(np.clip(stress_calc, 1, 10))
-st.progress(stress_level / 10, text=f"Stress Level: {stress_level}/10")
+
+# classify stress as Low/Normal/High for frontend & PDF
+if stress_level <= 3:
+    stress_category = "Low"
+elif stress_level <= 6:
+    stress_category = "Normal"
+else:
+    stress_category = "High"
+
+st.progress(stress_level / 10, text=f"Stress Level: {stress_level}/10 — {stress_category}")
 mood = st.selectbox("How do you feel today?", ["😊 Happy", "😐 Neutral", "😔 Sad", "😟 Stressed", "😡 Angry"])
 mindfulness = st.slider("Minutes of Mindfulness / Meditation Everyday", 0, 60, 0)
 
 # --- PREDICTION ---
 st.markdown("---")
 if st.button("Predict My Risk & Download Report"):
+    # build the input dataframe ONLY using fields model expects (do not change backend/input schema)
     input_data = pd.DataFrame({
         'personnel_id':[personnel_id],
         'post':[post],
@@ -207,6 +243,7 @@ if st.button("Predict My Risk & Download Report"):
         'predictive_system_usage':["Yes"]
     })
 
+    # ensure numeric columns are numeric
     numeric_cols = ['personnel_id','pollution_index','city_workload_index','age','years_of_service',
                     'height_cm','weight_kg','bmi','systolic_bp','diastolic_bp','heart_rate','spo2',
                     'fasting_blood_sugar','cholesterol','sleep_hours','exercise_mins_per_week',
@@ -217,9 +254,11 @@ if st.button("Predict My Risk & Download Report"):
     categorical_cols = ['post','posted_city','gender','chronic_disease','smoking','alcohol',
                         'shift_pattern','healthcare_scheme','technological_support','predictive_system_usage']
 
+    # encode safely and predict (we do not add frontend-only fields to input_data to avoid changing model behavior)
     input_encoded = safe_transform(ct_encoder, input_data, df, categorical_cols)
     risk_score = float(xgb_model.predict(input_encoded)[0])
 
+    # small manual adjustments (same as before)
     if smoking == "Occasionally": risk_score += 5
     elif smoking == "Regularly": risk_score += 10
     if alcohol == "Occasionally": risk_score += 3
@@ -253,7 +292,7 @@ if st.button("Predict My Risk & Download Report"):
     elements.append(Paragraph(f"Generated on: {datetime.datetime.now().strftime('%d-%m-%Y %H:%M:%S')}", styles['Normal']))
     elements.append(Spacer(1,12))
 
-    # Personnel
+    # Personnel & Demographics
     demo_data = [
         ["Personnel ID", personnel_id],
         ["Age", age],
@@ -261,57 +300,87 @@ if st.button("Predict My Risk & Download Report"):
         ["Post", post],
         ["Posted City", posted_city],
         ["Years of Service", years_of_service],
-        ["Pollution Index", pollution_index],
-        ["City Workload Index", city_workload_index],
+        ["Pollution Index (City)", f"{pollution_index:.2f}"],
+        ["City Workload Index", f"{city_workload_index:.2f}"],
         ["BMI", bmi]
     ]
-    demo_table = Table(demo_data, colWidths=[180, 320])
-    demo_table.setStyle(TableStyle([('GRID',(0,0),(-1,-1),0.3,colors.grey)]))
+    demo_table = Table(demo_data, colWidths=[200, 300])
+    demo_table.setStyle(TableStyle([('GRID',(0,0),(-1,-1),0.3,colors.grey),
+                                    ('BACKGROUND',(0,0),(1,0),colors.whitesmoke)]))
     elements.append(Paragraph("Personnel & Demographics", styles['Heading2']))
     elements.append(demo_table)
     elements.append(Spacer(1,10))
 
+    # Vitals (qualitative labels included)
     vitals_data = [
-        ["Blood Pressure", bp_level],
-        ["Cholesterol", cholesterol_level],
-        ["SpO₂", spo2_level],
-        ["Fasting Sugar", sugar_level],
-        ["Heart Rate", heart_level]
+        ["BP Issue (self-reported)", bp_issue],
+        ["Blood Pressure Level", bp_level],
+        ["Systolic (used)", f"{systolic_bp} mmHg"],
+        ["Diastolic (used)", f"{diastolic_bp} mmHg"],
+        ["Cholesterol Level", cholesterol_level],
+        ["Cholesterol (used)", f"{cholesterol} mg/dL"],
+        ["SpO₂ Level", spo2_level],
+        ["Fasting Sugar Level (qualitative)", sugar_level],
+        ["Fasting Sugar (used)", f"{fasting_blood_sugar} mg/dL"],
+        ["Heart Rate Level", heart_level],
+        ["Heart Rate (used)", f"{heart_rate} bpm"]
     ]
     elements.append(Paragraph("Vital Signs", styles['Heading2']))
-    elements.append(Table(vitals_data, colWidths=[180, 320], style=[('GRID',(0,0),(-1,-1),0.3,colors.grey)]))
+    elements.append(Table(vitals_data, colWidths=[200, 300], style=[('GRID',(0,0),(-1,-1),0.3,colors.grey)]))
     elements.append(Spacer(1,10))
 
+    # Lifestyle & Programs (include diet, exercise types, technological devices)
     lifestyle_data = [
-        ["Exercise", "Yes" if do_exercise=="Yes" else "No"],
-        ["Exercise Minutes", exercise_mins_per_week],
+        ["Exercise (Yes/No)", "Yes" if do_exercise=="Yes" else "No"],
+        ["Exercise Minutes/Week", exercise_mins_per_week],
+        ["Exercise Types", ", ".join(exercise_types) if exercise_types else "None"],
+        ["Diet Type", diet_type if diet_type != "Custom" else f"Custom: {diet_custom}"],
         ["Smoking", smoking],
         ["Alcohol", alcohol],
         ["Water Intake (L/day)", water_intake_liters],
         ["Wellness Program", wellness_program],
         ["Healthcare Scheme", healthcare_scheme],
-        ["Use of Technology", technological_support]
+        ["Department Technology Use", technological_support],
+        ["Device(s) Used by Individual", ", ".join(technological_devices) if technological_devices else "None"]
     ]
-    elements.append(Paragraph("Lifestyle & Programs", styles['Heading2']))
-    elements.append(Table(lifestyle_data, colWidths=[180, 320], style=[('GRID',(0,0),(-1,-1),0.3,colors.grey)]))
+    elements.append(Paragraph("Lifestyle, Diet & Technology", styles['Heading2']))
+    elements.append(Table(lifestyle_data, colWidths=[200, 300], style=[('GRID',(0,0),(-1,-1),0.3,colors.grey)]))
     elements.append(Spacer(1,10))
 
+    # Occupational & Mental Health
     occ_data = [
         ["Shift Pattern", shift_pattern],
         ["Working Hours/Week", working_hours_per_week],
         ["Stress Level (1–10)", stress_level],
+        ["Stress Category", stress_category],
         ["Mood", mood],
         ["Mindfulness (mins/day)", mindfulness],
         ["Current Health Details", current_health_details]
     ]
     elements.append(Paragraph("Occupational & Health Summary", styles['Heading2']))
-    elements.append(Table(occ_data, colWidths=[180, 320], style=[('GRID',(0,0),(-1,-1),0.3,colors.grey)]))
+    elements.append(Table(occ_data, colWidths=[200, 300], style=[('GRID',(0,0),(-1,-1),0.3,colors.grey)]))
     elements.append(Spacer(1,10))
 
+    # Risk Assessment
     elements.append(Paragraph("Risk Assessment", styles['Heading2']))
     rc_style = ParagraphStyle('rc', fontSize=11, textColor=colors.green if risk_category=="✅ Normal" else (colors.orange if risk_category=="⚠ Borderline" else colors.red))
     elements.append(Paragraph(f"Risk Category: {risk_category}", rc_style))
     elements.append(Paragraph(f"Risk Score: {risk_score:.1f}", styles['Normal']))
+    elements.append(Spacer(1,12))
+
+    # Advice / Next steps (short, generic)
+    advice_lines = []
+    if risk_category == "✅ Normal":
+        advice_lines.append("Maintain current healthy habits; regular checkups recommended.")
+    elif risk_category == "⚠ Borderline":
+        advice_lines.append("Monitor vitals regularly; consult a physician for targeted advice.")
+    else:
+        advice_lines.append("High risk detected. Please consult a medical professional promptly.")
+
+    advice_lines.append("Consider using department wellness programs, devices (wearables/glucometer/BP monitor) and a balanced diet.")
+    advice_para = Paragraph("<br/>".join(advice_lines), styles['Normal'])
+    elements.append(Paragraph("Suggested Next Steps", styles['Heading2']))
+    elements.append(advice_para)
 
     pdf.build(elements)
     buffer.seek(0)
