@@ -142,7 +142,7 @@ else:
 st.info(f"Estimated SpO₂ Level: **{spo2_level} ({spo2}%)** based on your response")
 
 # Sugar level
-sugar_level = st.selectbox("Fasting Blood Sugar Level (qualitative)", ["Low", "Normal", "High"])
+sugar_level = st.selectbox("Sugar Level ", ["Low", "Normal", "High"])
 fasting_blood_sugar = get_numeric_from_level(sugar_level, 70, 100, 125)
 
 # Heart rate
@@ -374,3 +374,4 @@ if st.button("Predict My Risk & Download Report"):
 # --- FOOTER ---
 st.markdown("---")
 st.caption("© 2025 Police Health Analytics | Developed for Research and Awareness")
+
