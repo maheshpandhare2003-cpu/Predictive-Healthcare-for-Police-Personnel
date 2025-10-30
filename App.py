@@ -133,7 +133,7 @@ spo2_level = st.selectbox("SpO₂ Level", ["Low", "Normal"])
 spo2 = get_numeric_from_level(spo2_level, 92, 98, 98)
 
 # Sugar level categorization (Low/Normal/High) as requested
-sugar_level = st.selectbox("Fasting Blood Sugar Level (qualitative)", ["Low", "Normal", "High"])
+sugar_level = st.selectbox("Sugar Level ", ["Low", "Normal", "High"])
 fasting_blood_sugar = get_numeric_from_level(sugar_level, 70, 100, 125)
 
 # Heart rate
@@ -394,3 +394,4 @@ if st.button("Predict My Risk & Download Report"):
 # --- FOOTER ---
 st.markdown("---")
 st.caption("© 2025 Police Health Analytics | Developed for Research and Awareness")
+
