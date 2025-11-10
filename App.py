@@ -37,7 +37,7 @@ with col_logo:
         pass
 with col_title:
     st.title("Predictive Healthcare for Police Personnel")
-    st.caption("Personalized Risk Assessment — simplified and enhanced UI")
+    
 
 # --- LOAD DATA & MODEL ---
 df = pd.read_csv("police_health_dataset.csv")
@@ -324,3 +324,4 @@ if st.button("Predict My Risk & Download Report"):
     # --- FOOTER ---
 st.markdown("---")
 st.caption("© 2025 Police Health Analytics | Developed for Research and Awareness")
+
