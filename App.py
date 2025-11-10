@@ -207,9 +207,9 @@ st.write(f"Stress Level: {stress_level}/10 — {stress_category}")
 mood = st.selectbox("How do you feel today?", ["😊 Happy", "😐 Neutral", "😔 Sad", "😟 Stressed", "😡 Angry"])
 mindfulness = st.slider("Minutes of Mindfulness / Meditation Everyday", 0, 60, 0)
 
-# --- PREDICTION ---
+# --- PREDICTION & REPORT ---
 st.markdown("---")
-if st.button("Predict My Risk & Download Report"):
+if st.button("Predict My Risk & Prepare Report"):
     input_data = pd.DataFrame({
         'personnel_id':[personnel_id],
         'post':[post],
@@ -254,6 +254,7 @@ if st.button("Predict My Risk & Download Report"):
     input_encoded = safe_transform(ct_encoder, input_data, df, categorical_cols)
     risk_score = float(xgb_model.predict(input_encoded)[0])
 
+    # Adjustments based on habits
     if smoking == "Occasionally": risk_score += 5
     elif smoking == "Regularly": risk_score += 10
     if alcohol == "Occasionally": risk_score += 3
@@ -267,13 +268,15 @@ if st.button("Predict My Risk & Download Report"):
     st.write(f"**Risk Score:** {risk_score:.1f}")
     st.write(f"**Risk Category:** {risk_category}")
 
-    # --- PDF REPORT ---
+    # --- PDF REPORT BUILD ---
     buffer = io.BytesIO()
     pdf = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=36, leftMargin=36, topMargin=36, bottomMargin=36)
     styles = getSampleStyleSheet()
     styles.add(ParagraphStyle(name='CenterTitle', alignment=1, fontSize=14, spaceAfter=8))
     styles.add(ParagraphStyle(name='Small', fontSize=9))
     elements = []
+
+    # Logo + Title
     try:
         logo = Image("—Pngtree—gold police officer badge_7258551.png", width=60, height=60)
         logo.hAlign = 'CENTER'
@@ -295,7 +298,8 @@ if st.button("Predict My Risk & Download Report"):
         ["Years of Service", years_of_service],
         ["Pollution Index", f"{pollution_index:.2f}"],
         ["City Workload Index", f"{city_workload_index:.2f}"],
-        ["BMI", bmi]
+        ["BMI", bmi],
+        ["Current Health Conditions", current_health_details]
     ]
     elements.append(Paragraph("Personnel & Demographics", styles['Heading2']))
     elements.append(Table(demo_data, colWidths=[180, 300], style=[('GRID',(0,0),(-1,-1),0.3,colors.grey)]))
@@ -320,8 +324,92 @@ if st.button("Predict My Risk & Download Report"):
     elements.append(Table(vitals_data, colWidths=[180, 300], style=[('GRID',(0,0),(-1,-1),0.3,colors.grey)]))
     elements.append(Spacer(1,10))
 
-    # Rest of PDF (Lifestyle, Occupational, Suggestions) remains identical...
-    # --- FOOTER ---
+    # LIFESTYLE
+    lifestyle_data = [
+        ["Exercise (mins/week)", exercise_mins_per_week],
+        ["Exercise Types", ", ".join(exercise_types) if exercise_types else "None"],
+        ["Diet Type", diet_type if diet_type != "Custom" else diet_custom],
+        ["Smoking", smoking],
+        ["Alcohol", alcohol],
+        ["Daily Water Intake (L)", water_intake_liters],
+        ["Technological Devices", ", ".join(technological_devices) if technological_devices else "None"],
+        ["Wellness Program Provided", wellness_program],
+        ["Healthcare Scheme", healthcare_scheme],
+        ["Use of Technology", technological_support]
+    ]
+    elements.append(Paragraph("Lifestyle & Wellness", styles['Heading2']))
+    elements.append(Table(lifestyle_data, colWidths=[180, 300], style=[('GRID',(0,0),(-1,-1),0.3,colors.grey)]))
+    elements.append(Spacer(1,10))
+
+    # OCCUPATIONAL & MENTAL HEALTH
+    occ_data = [
+        ["Shift Pattern", shift_pattern],
+        ["Working Hours / week", working_hours_per_week],
+        ["Stress Level (1-10)", stress_level],
+        ["Stress Category", stress_category],
+        ["Mood Today", mood],
+        ["Mindfulness (mins/day)", mindfulness]
+    ]
+    elements.append(Paragraph("Occupational & Mental Health", styles['Heading2']))
+    elements.append(Table(occ_data, colWidths=[180, 300], style=[('GRID',(0,0),(-1,-1),0.3,colors.grey)]))
+    elements.append(Spacer(1,10))
+
+    # PREDICTION & SUGGESTIONS
+    suggestion_list = []
+    # Basic suggestions based on measures
+    if risk_score >= 70:
+        suggestion_list.append("High risk detected — immediate medical follow-up recommended.")
+    elif risk_score >= 40:
+        suggestion_list.append("Borderline risk — schedule a detailed health check within 1-3 months.")
+    else:
+        suggestion_list.append("Risk within normal range — continue regular monitoring and healthy habits.")
+
+    if spo2 < 95:
+        suggestion_list.append("SpO₂ is estimated low — consider formal SpO₂ measurement and respiratory review.")
+    if systolic_bp >= 140 or diastolic_bp >= 90:
+        suggestion_list.append("Elevated BP detected — monitor BP regularly and consult physician.")
+    if fasting_blood_sugar >= 125:
+        suggestion_list.append("High fasting blood sugar — screen for diabetes and follow up with endocrinology.")
+    if cholesterol >= 240:
+        suggestion_list.append("High cholesterol — dietary changes and lipid profile follow-up advised.")
+    if stress_level >= 7:
+        suggestion_list.append("High stress — consider stress management, counseling, or relaxation programs.")
+
+    # General lifestyle advice
+    suggestion_list.append("Maintain a balanced diet, regular exercise (≥150 mins moderate/week), and 7-8 hours sleep nightly.")
+    suggestion_list.append("Limit tobacco and alcohol; increase hydration; use departmental wellness resources if available.")
+    suggestion_list.append("If symptoms persist or worsen, seek prompt medical attention.")
+
+    elements.append(Paragraph("Risk Prediction & Suggestions", styles['Heading2']))
+    elements.append(Paragraph(f"Risk Score: {risk_score:.1f} — {risk_category}", styles['Normal']))
+    elements.append(Spacer(1,6))
+    # Add suggestions as bullet-like paragraphs
+    for s in suggestion_list:
+        elements.append(Paragraph(f"• {s}", styles['Normal']))
+        elements.append(Spacer(1,4))
+
+    elements.append(Spacer(1,12))
+    elements.append(Paragraph("Notes:", styles['Heading3']))
+    elements.append(Paragraph("This report is generated for research and awareness. It does not replace professional medical advice.", styles['Small']))
+    elements.append(Spacer(1,18))
+
+    # FOOTER
+    elements.append(Paragraph("© 2025 Police Health Analytics | Developed for Research and Awareness", styles['Small']))
+
+    # Build PDF
+    pdf.build(elements)
+
+    # Prepare bytes for download & display
+    buffer.seek(0)
+    pdf_bytes = buffer.getvalue()
+
+    st.success("Report prepared — use the button below to download the PDF.")
+    st.download_button(
+        label="📥 Download Health Report (PDF)",
+        data=pdf_bytes,
+        file_name=f"health_report_personnel_{int(personnel_id)}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
+        mime="application/pdf"
+    )
+
 st.markdown("---")
 st.caption("© 2025 Police Health Analytics | Developed for Research and Awareness")
-
