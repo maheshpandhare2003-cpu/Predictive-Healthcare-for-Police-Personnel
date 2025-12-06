@@ -22,8 +22,8 @@ st.set_page_config(
 # --- STYLING ---
 st.markdown("""
 <style>
-body { background-color: #f8f9fa; color: #212529; font-family: "Segoe UI", sans-serif; }
-h1,h2,h3,h4 { color: #0a2647; }
+body { background-color: #f8f9fa; color:#212529; font-family:'Segoe UI',sans-serif; }
+h1,h2,h3,h4 { color:#0a2647; }
 .stButton > button { background-color:#0a2647; color:#fff; border-radius:8px; padding:0.6em 1.2em; font-weight:600;}
 .stButton > button:hover { background-color:#144272; }
 div.stDownloadButton > button { background-color:#0a2647; color:#fff; border-radius:8px; padding:0.5em 1em; }
@@ -31,7 +31,7 @@ div.stDownloadButton > button { background-color:#0a2647; color:#fff; border-rad
 """, unsafe_allow_html=True)
 
 # --- HEADER ---
-col_logo, col_title = st.columns([1, 4])
+col_logo, col_title = st.columns([1,4])
 with col_logo:
     try:
         st.image("—Pngtree—gold police officer badge_7258551.png", width=90)
@@ -69,6 +69,7 @@ def safe_transform(encoder, X, df_ref, categorical_cols):
 # --- DEMOGRAPHICS ---
 # --------------------------------------------------------------------------
 st.header("👤 Demographics Information")
+
 col1, col2, col3 = st.columns(3)
 with col1:
     personnel_id = st.number_input("Personnel ID", min_value=1, step=1)
@@ -111,6 +112,7 @@ current_health_details = ", ".join(health_conditions) if health_conditions else 
 # --- VITAL SIGNS ---
 # --------------------------------------------------------------------------
 st.header("❤️ Vital Signs")
+
 bp_level = st.selectbox("BP Level", ["Low", "Medium", "High"])
 systolic_bp = get_numeric_from_level(bp_level, 95, 120, 150)
 diastolic_bp = get_numeric_from_level(bp_level, 65, 80, 100)
@@ -157,9 +159,15 @@ else:
     exercise_types = []
 
 # --------------------------------------------------------------------------
-# --- REQUIRED CHANGE 3: FULL DIET LOGIC (Veg / Non-Veg / Both) ---
+# --- REQUIRED CHANGE 3: FULL DIET LOGIC (Veg / Non-Veg / Both) + NEW FEATURE ---
 # --------------------------------------------------------------------------
-st.subheader("🍽 Diet Details (NEW)")
+
+st.subheader("🍽 Diet Details (UPDATED)")
+
+# ---------------- NEW QUESTIONS ADDED ----------------
+have_breakfast = st.radio("Do you have breakfast every day?", ["Yes", "No"])
+have_lunch = st.radio("Do you have lunch every day?", ["Yes", "No"])
+have_dinner = st.radio("Do you have dinner every day?", ["Yes", "No"])
 
 diet_pref = st.radio("What do you eat?", ["Veg", "Non-Veg", "Both"])
 
@@ -176,12 +184,41 @@ nonveg_foods = [
     "Mutton Curry"
 ]
 
-if diet_pref == "Veg":
-    diet_food_selected = st.multiselect("Select Veg Foods:", veg_foods)
-elif diet_pref == "Non-Veg":
-    diet_food_selected = st.multiselect("Select Non-Veg Foods:", nonveg_foods)
+# ----------- Breakfast section ------------
+if have_breakfast == "Yes":
+    st.markdown("### 🥣 Breakfast Items")
+    if diet_pref == "Veg":
+        breakfast_selected = st.multiselect("Select Breakfast Items:", veg_foods)
+    elif diet_pref == "Non-Veg":
+        breakfast_selected = st.multiselect("Select Breakfast Items:", nonveg_foods)
+    else:
+        breakfast_selected = st.multiselect("Select Breakfast Items:", veg_foods + nonveg_foods)
 else:
-    diet_food_selected = st.multiselect("Select Foods:", veg_foods + nonveg_foods)
+    breakfast_selected = []
+
+# ----------- Lunch section ------------
+if have_lunch == "Yes":
+    st.markdown("### 🍛 Lunch Items")
+    if diet_pref == "Veg":
+        lunch_selected = st.multiselect("Select Lunch Items:", veg_foods)
+    elif diet_pref == "Non-Veg":
+        lunch_selected = st.multiselect("Select Lunch Items:", nonveg_foods)
+    else:
+        lunch_selected = st.multiselect("Select Lunch Items:", veg_foods + nonveg_foods)
+else:
+    lunch_selected = []
+
+# ----------- Dinner section ------------
+if have_dinner == "Yes":
+    st.markdown("### 🍽 Dinner Items")
+    if diet_pref == "Veg":
+        dinner_selected = st.multiselect("Select Dinner Items:", veg_foods)
+    elif diet_pref == "Non-Veg":
+        dinner_selected = st.multiselect("Select Dinner Items:", nonveg_foods)
+    else:
+        dinner_selected = st.multiselect("Select Dinner Items:", veg_foods + nonveg_foods)
+else:
+    dinner_selected = []
 
 # Sleep, smoking, alcohol, tech
 sleep_hours = st.number_input("Sleep hours per day", min_value=0.0, max_value=24.0, step=0.5)
@@ -202,6 +239,7 @@ technological_support = st.selectbox("Use of Technology in Health Monitoring", [
 # --- OCCUPATIONAL & MENTAL HEALTH ---
 # --------------------------------------------------------------------------
 st.header("💼 Occupational & Mental Health")
+
 shift_pattern = st.selectbox("Shift Pattern", ["Day", "Night", "Rotational"])
 working_hours_per_week = st.number_input("Working hours per week", min_value=1, max_value=120)
 
@@ -215,6 +253,7 @@ elif working_hours_per_week > 40: stress_calc += 1
 if exercise_mins_per_week == 0: stress_calc += 2
 elif exercise_mins_per_week < 60: stress_calc += 1
 if shift_pattern.lower() in ["night", "rotational"]: stress_calc += 2
+
 auto_stress_level = int(np.clip(stress_calc, 1, 10))
 
 stress_override = st.selectbox("Choose stress level input method", ["Auto-calculated", "Low", "Normal", "High"])
@@ -351,12 +390,16 @@ if st.button("Predict My Risk & Prepare Report"):
     elements.append(Table(vitals_data, colWidths=[180, 300], style=[('GRID',(0,0),(-1,-1),0.3,colors.grey)]))
     elements.append(Spacer(1,10))
 
-    # LIFESTYLE TABLE (including diet selections)
-    diet_text = ", ".join(diet_food_selected) if diet_food_selected else "Not specified"
+    # LIFESTYLE TABLE
+    diet_text_breakfast = ", ".join(breakfast_selected) if breakfast_selected else "Not specified"
+    diet_text_lunch = ", ".join(lunch_selected) if lunch_selected else "Not specified"
+    diet_text_dinner = ", ".join(dinner_selected) if dinner_selected else "Not specified"
 
     lifestyle_data = [
         ["Diet Preference", diet_pref],
-        ["Diet Items", diet_text],
+        ["Breakfast Items", diet_text_breakfast],
+        ["Lunch Items", diet_text_lunch],
+        ["Dinner Items", diet_text_dinner],
         ["Exercise (mins/week)", exercise_mins_per_week],
         ["Exercise Types", ", ".join(exercise_types) if exercise_types else "None"],
         ["Smoking", smoking],
@@ -370,7 +413,7 @@ if st.button("Predict My Risk & Prepare Report"):
 
     elements.append(Paragraph("Lifestyle & Diet", styles['Heading2']))
     elements.append(Table(lifestyle_data, colWidths=[180, 300],
-                          style=[('GRID',(0,0),(-1,-1),0.3,colors.grey)]))
+                         style=[('GRID',(0,0),(-1,-1),0.3,colors.grey)]))
     elements.append(Spacer(1,10))
 
     # OCCUPATIONAL
@@ -384,7 +427,7 @@ if st.button("Predict My Risk & Prepare Report"):
     ]
     elements.append(Paragraph("Occupational & Mental Health", styles['Heading2']))
     elements.append(Table(occ_data, colWidths=[180, 300],
-                          style=[('GRID',(0,0),(-1,-1),0.3,colors.grey)]))
+                         style=[('GRID',(0,0),(-1,-1),0.3,colors.grey)]))
     elements.append(Spacer(1,10))
 
     # SUGGESTIONS
@@ -405,6 +448,7 @@ if st.button("Predict My Risk & Prepare Report"):
 
     elements.append(Paragraph("Risk Prediction & Suggestions", styles['Heading2']))
     elements.append(Paragraph(f"Risk Score: {risk_score:.1f} — {risk_category}", styles['Normal']))
+
     for s in suggestion_list:
         elements.append(Paragraph(f"• {s}", styles['Normal']))
         elements.append(Spacer(1,4))
