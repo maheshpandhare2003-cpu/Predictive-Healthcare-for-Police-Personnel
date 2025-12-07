@@ -1,240 +1,506 @@
+# App.py (Final Updated Version with Auto SpO₂ Estimation, Diet Options, Sleep in PDF, 
+# Manual Stress Override, and Suggestions — With ONLY Requested Changes Added)
+
 import streamlit as st
-import numpy as np
 import pandas as pd
+import numpy as np
 import joblib
-from datetime import datetime
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import letter
 import io
+import datetime
+from reportlab.lib.pagesizes import A4
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib import colors
 
-# ---------------------------
-#      PAGE SETTINGS
-# ---------------------------
-st.set_page_config(page_title="Predictive Healthcare for Police Personnel", layout="wide")
+# --- PAGE CONFIG ---
+st.set_page_config(
+    page_title="Predictive Healthcare for Police Personnel",
+    page_icon="—Pngtree—gold police officer badge_7258551.png",
+    layout="wide"
+)
 
-st.markdown("<h1 style='text-align:center;color:#0047AB;'>Predictive Healthcare System for Police Personnel</h1>", unsafe_allow_html=True)
-st.markdown("<h3 style='text-align:center;'>Advanced Health Risk Prediction & Personalized Wellness Recommendations</h3>", unsafe_allow_html=True)
-st.write("")
+# --- STYLING ---
+st.markdown("""
+<style>
+body { background-color: #f8f9fa; color: #212529; font-family: "Segoe UI", sans-serif; }
+h1,h2,h3,h4 { color: #0a2647; }
+.stButton > button { background-color:#0a2647; color:#fff; border-radius:8px; padding:0.6em 1.2em; font-weight:600;}
+.stButton > button:hover { background-color:#144272; }
+div.stDownloadButton > button { background-color:#0a2647; color:#fff; border-radius:8px; padding:0.5em 1em; }
+</style>
+""", unsafe_allow_html=True)
 
-# ---------------------------
-#    LOAD TRAINED MODEL
-# ---------------------------
-model = joblib.load("trainedHealthModel.pkl")
-scaler = joblib.load("scaler.pkl")
-encoder = joblib.load("encoder.pkl")
+# --- HEADER ---
+col_logo, col_title = st.columns([1, 4])
+with col_logo:
+    try:
+        st.image("—Pngtree—gold police officer badge_7258551.png", width=90)
+    except:
+        pass
+with col_title:
+    st.title("Predictive Healthcare for Police Personnel")
 
-# COLUMNS USED BY YOUR MODEL
-model_feature_order = [
-    "Gender", "Age", "BMI", "Physical_Activity", "Smoking", "Alcohol_Consumption",
-    "Cholesterol", "Blood_Pressure", "Diabetes", "Sleep_Hours", "Stress_Level",
-    "Diet_Type", "Predictive_System_Usage", "Has_Chronic_Disease"
+# --- LOAD DATA & MODEL ---
+df = pd.read_csv("police_health_dataset.csv")
+ct_encoder = joblib.load("ct_encoder.pkl")
+xgb_model = joblib.load("xgb_model.pkl")
+
+# --- HELPER ---
+def get_numeric_from_level(level, low, normal, high):
+    return low if level == "Low" else normal if level == "Normal" else high
+
+def safe_transform(encoder, X, df_ref, categorical_cols):
+    try:
+        return encoder.transform(X)
+    except Exception:
+        X2 = X.copy()
+        for col in categorical_cols:
+            if col in X2.columns and col in df_ref.columns:
+                known = list(df_ref[col].dropna().unique())
+                if known:
+                    X2[col] = X2[col].apply(lambda v: v if v in known else known[0])
+                else:
+                    X2[col] = X2[col].fillna("Unknown")
+            else:
+                X2[col] = "Unknown"
+        return encoder.transform(X2)
+
+# --------------------------------------------------------------------------
+# --- DEMOGRAPHICS ---
+# --------------------------------------------------------------------------
+st.header("👤 Demographics Information")
+col1, col2, col3 = st.columns(3)
+with col1:
+    personnel_id = st.number_input("Personnel ID", min_value=1, step=1)
+    age = st.number_input("Age (years)", min_value=18, max_value=100)
+    gender = st.radio("Gender", ["Male", "Female", "Other"])
+with col2:
+    years_of_service = st.number_input("Years of Service", min_value=0, step=1)
+    post = st.selectbox("Post", df['post'].unique())
+    posted_city = st.selectbox("Posted City", df['posted_city'].unique())
+with col3:
+    city_row = df[df['posted_city'] == posted_city]
+    if not city_row.empty:
+        pollution_index = float(city_row['pollution_index'].iloc[0])
+        city_workload_index = float(city_row['city_workload_index'].iloc[0])
+    else:
+        pollution_index = 0.0
+        city_workload_index = 0.0
+    st.metric(label="City Pollution Index", value=f"{pollution_index:.2f}")
+    st.metric(label="City Workload Index", value=f"{city_workload_index:.2f}")
+    height_cm = st.number_input("Height (cm)", min_value=120, max_value=250)
+    weight_kg = st.number_input("Weight (kg)", min_value=30, max_value=200)
+
+bmi = round(weight_kg / ((height_cm / 100) ** 2), 1) if height_cm > 0 else 0.0
+st.text_input("BMI", value=bmi, disabled=True)
+
+# --------------------------------------------------------------------------
+# --- REQUIRED CHANGE 1: CHANGE HEADING NAME ---
+# --------------------------------------------------------------------------
+st.header("🩺 Police personnel using Schemes / System")
+
+health_conditions = st.multiselect(
+    "Select schemes/systems or current conditions:",
+    ["High BP", "Low BP", "Cholesterol", "Diabetes", "Thyroid", "Heart Disease",
+     "Asthma", "MPKAY", "Family Health Scheme", "Dhanwantari", "MJPJAY", "Preventive Camps",
+     "Digital Health Records", "Police Hospitals", "None"]
+)
+current_health_details = ", ".join(health_conditions) if health_conditions else "None"
+
+# --------------------------------------------------------------------------
+# --- VITAL SIGNS ---
+# --------------------------------------------------------------------------
+st.header("❤️ Vital Signs")
+bp_level = st.selectbox("BP Level", ["Low", "Medium", "High"])
+systolic_bp = get_numeric_from_level(bp_level, 95, 120, 150)
+diastolic_bp = get_numeric_from_level(bp_level, 65, 80, 100)
+
+cholesterol_level = st.selectbox("Cholesterol Level", ["Low", "Medium", "High"])
+cholesterol = get_numeric_from_level(cholesterol_level, 150, 200, 270)
+
+diabetes_level = st.selectbox("Diabetes Level", ["Low", "Normal", "High"])
+fasting_blood_sugar = get_numeric_from_level(diabetes_level, 70, 100, 125)
+
+# SPO2
+st.subheader("🫁 Oxygen Saturation (SpO₂) Estimation")
+spo2_question = st.radio(
+    "How do you currently feel?",
+    ["Normal breathing, no fatigue",
+     "Slight breathlessness or tiredness",
+     "Severe breathlessness or using oxygen support"]
+)
+spo2 = 98 if spo2_question == "Normal breathing, no fatigue" else (94 if spo2_question == "Slight breathlessness or tiredness" else 90)
+spo2_level = "Normal" if spo2 >= 95 else "Low"
+st.info(f"Estimated SpO₂ Level: **{spo2_level} ({spo2}%)**")
+
+heart_level = st.selectbox("Heart Rate Level", ["Low", "Normal", "High"])
+heart_rate = get_numeric_from_level(heart_level, 55, 80, 110)
+
+# Chronic disease
+chronic_disease = st.selectbox("Chronic Disease", df['chronic_disease'].unique())
+if chronic_disease == "Other":
+    chronic_disease_other = st.text_input("Please specify your chronic disease")
+else:
+    chronic_disease_other = chronic_disease
+
+# --------------------------------------------------------------------------
+# --- REQUIRED CHANGE 2: CHANGE HEADING NAME ---
+# --------------------------------------------------------------------------
+st.header("🩺 Police Personnel latest Health details/Diseases")
+
+do_exercise = st.radio("Do you exercise?", ["Yes", "No"])
+if do_exercise == "Yes":
+    exercise_mins_per_week = st.number_input("Exercise minutes per week", min_value=0, max_value=10000, step=5)
+    exercise_types = st.multiselect("Select exercise types", ["Swimming","Running","Jogging","Walking","Weight training","Cycling","Aerobics","Yoga"])
+else:
+    exercise_mins_per_week = 0
+    exercise_types = []
+
+# --------------------------------------------------------------------------
+# --- REQUIRED CHANGE 3: FULL DIET LOGIC (Veg / Non-Veg / Both) ---
+# --------------------------------------------------------------------------
+st.subheader("🍽 Diet Details (NEW)")
+
+# New: Breakfast / Lunch / Dinner daily questions
+have_breakfast = st.radio("Do you have Breakfast every day?", ["Yes", "No"])
+have_lunch = st.radio("Do you have Lunch every day?", ["Yes", "No"])
+have_dinner = st.radio("Do you have Dinner every day?", ["Yes", "No"])
+
+# Meal lists (separated by meal and veg/non-veg)
+veg_breakfast = [
+    "Poha", "Upma", "Idli", "Dosa", "Uttapam", "Sabudana Khichdi",
+    "Thepla", "Paratha", "Sprouts Salad", "Fruit Bowl"
+]
+nonveg_breakfast = [
+    "Boiled Eggs", "Omelette", "Egg Bhurji", "Egg Sandwich"
 ]
 
-# ---------------------------
-# SAFE TRANSFORM FUNCTION
-# ---------------------------
-def safe_transform(df):
-    for col in encoder.feature_names_in_:
-        df[col] = df[col].astype(str)
-    return encoder.transform(df)
+veg_lunch = [
+    "Chapati", "Dal Rice", "Veg Thali", "Puri Bhaji",
+    "Vegetable Khichdi", "Paneer Curry", "Mix Veg Curry"
+]
+nonveg_lunch = [
+    "Chicken Curry", "Chicken Fry", "Fish Curry",
+    "Fish Fry", "Egg Curry", "Mutton Curry"
+]
 
-# ---------------------------
-# SIDEBAR FOR BASIC DETAILS
-# ---------------------------
-with st.sidebar:
-    st.header("Personnel Information")
-    personnel_id = st.text_input("Personnel ID")
-    name = st.text_input("Name")
-    gender = st.selectbox("Gender", ["Male", "Female"])
-    age = st.slider("Age", 18, 65, 30)
-    height = st.number_input("Height (cm)", 100, 220, 170)
-    weight = st.number_input("Weight (kg)", 30, 150, 70)
+veg_dinner = [
+    "Chapati", "Veg Thali", "Dal Tadka with Rice", "Khichdi",
+    "Paneer Sabji", "Vegetable Soup"
+]
+nonveg_dinner = [
+    "Chicken Curry", "Chicken Soup", "Mutton Curry",
+    "Egg Bhurji", "Fish Curry"
+]
 
-# ---------------------------
-#      HEALTH PARAMETERS
-# ---------------------------
-st.subheader("Medical Parameters")
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    physical_activity = st.selectbox("Physical Activity Level", ["Low", "Medium", "High"])
-    sleep_hours = st.slider("Sleep Hours", 3, 12, 7)
-
-with col2:
-    smoking = st.selectbox("Smoking", ["No", "Yes"])
-    alcohol = st.selectbox("Alcohol Consumption", ["No", "Yes"])
-    bp = st.selectbox("Blood Pressure", ["Normal", "High"])
-
-with col3:
-    cholesterol = st.selectbox("Cholesterol Level", ["Normal", "Borderline", "High"])
-    diabetes = st.selectbox("Diabetes", ["No", "Yes"])
-    stress = st.slider("Stress Level (1–10)", 1, 10, 5)
-
-# ---------------------------
-#         DIET LOGIC
-# ---------------------------
-st.subheader("Diet Information")
-
-diet_type = st.selectbox("Diet Type", ["Vegetarian", "Non-Vegetarian", "Mixed"])
-
-have_breakfast = st.radio("Do you have Breakfast?", ["Yes", "No"])
-have_lunch = st.radio("Do you have Lunch?", ["Yes", "No"])
-have_dinner = st.radio("Do you have Dinner?", ["Yes", "No"])
-
-veg_items = ["Roti", "Rice", "Dal", "Green Salad", "Poha", "Dosa", "Upma", "Khichdi"]
-nonveg_items = ["Eggs", "Chicken", "Fish"]
-
-# BREAKFAST
-if have_breakfast == "Yes":
-    if diet_type == "Vegetarian":
-        breakfast_items = st.multiselect("Breakfast Items", veg_items)
-    elif diet_type == "Non-Vegetarian":
-        breakfast_items = st.multiselect("Breakfast Items", nonveg_items)
+def get_meal_selection(meal_name, have_meal, veg_items, nonveg_items):
+    if have_meal == "Yes":
+        pref = st.radio(f"{meal_name} Preference", ["Veg", "Non-Veg", "Both"],
+                        key=f"{meal_name}_pref")
+        
+        if pref == "Veg":
+            return st.multiselect(f"Select {meal_name} Items (Veg):", veg_items,
+                                  key=f"{meal_name}_items")
+        elif pref == "Non-Veg":
+            return st.multiselect(f"Select {meal_name} Items (Non-Veg):", nonveg_items,
+                                  key=f"{meal_name}_items")
+        else:
+            return st.multiselect(f"Select {meal_name} Items (Veg + Non-Veg):",
+                                  veg_items + nonveg_items,
+                                  key=f"{meal_name}_items")
     else:
-        breakfast_items = st.multiselect("Breakfast Items", veg_items + nonveg_items)
+        return []
+
+breakfast_selected = get_meal_selection("Breakfast", have_breakfast,
+                                        veg_breakfast, nonveg_breakfast)
+
+lunch_selected = get_meal_selection("Lunch", have_lunch,
+                                    veg_lunch, nonveg_lunch)
+
+dinner_selected = get_meal_selection("Dinner", have_dinner,
+                                     veg_dinner, nonveg_dinner)
+
+# maintain compatibility with existing variable names used further down
+diet_pref = "Breakfast/Lunch/Dinner logged"
+diet_food_selected = breakfast_selected + lunch_selected + dinner_selected
+# --------------------------------------------------------------------------
+# --- Sleep, smoking, alcohol, tech ---
+# --------------------------------------------------------------------------
+sleep_hours = st.number_input("Sleep hours per day", min_value=0.0, max_value=24.0, step=0.5)
+smoking = st.selectbox("Do you smoke?", ["No", "Occasionally", "Regularly"])
+alcohol = st.selectbox("Do you consume alcohol?", ["No", "Occasionally", "Regularly"])
+water_intake_liters = st.number_input("Daily Water Intake (Liters)", min_value=0.0, max_value=10.0, step=0.1)
+
+technological_devices = st.multiselect(
+    "Technological Devices Used",
+    ["Wearable (smartwatch)", "Mobile Health App", "Telehealth Services", "BP Monitor", "Glucometer", "None"]
+)
+
+wellness_program = st.radio("Wellness Programs Provided by Department?", ["Yes", "No", "Sometimes"])
+healthcare_scheme = st.selectbox("Healthcare Scheme Used", df['healthcare_scheme'].unique())
+technological_support = st.selectbox("Use of Technology in Health Monitoring", ["Low", "Medium", "High"])
+# --------------------------------------------------------------------------
+# --- OCCUPATIONAL & MENTAL HEALTH ---
+# --------------------------------------------------------------------------
+st.header("💼 Occupational & Mental Health")
+shift_pattern = st.selectbox("Shift Pattern", ["Day", "Night", "Rotational"])
+working_hours_per_week = st.number_input("Working hours per week", min_value=1, max_value=120)
+
+stress_calc = 5
+if sleep_hours < 6: stress_calc += 3
+elif sleep_hours < 7: stress_calc += 2
+elif sleep_hours < 8: stress_calc += 1
+if working_hours_per_week > 60: stress_calc += 3
+elif working_hours_per_week > 50: stress_calc += 2
+elif working_hours_per_week > 40: stress_calc += 1
+if exercise_mins_per_week == 0: stress_calc += 2
+elif exercise_mins_per_week < 60: stress_calc += 1
+if shift_pattern.lower() in ["night", "rotational"]: stress_calc += 2
+auto_stress_level = int(np.clip(stress_calc, 1, 10))
+
+stress_override = st.selectbox("Choose stress level input method", ["Auto-calculated", "Low", "Normal", "High"])
+if stress_override == "Auto-calculated":
+    stress_level = auto_stress_level
 else:
-    breakfast_items = []
+    stress_level = 2 if stress_override=="Low" else (5 if stress_override=="Normal" else 8)
 
-# LUNCH
-if have_lunch == "Yes":
-    if diet_type == "Vegetarian":
-        lunch_items = st.multiselect("Lunch Items", veg_items)
-    elif diet_type == "Non-Vegetarian":
-        lunch_items = st.multiselect("Lunch Items", nonveg_items)
-    else:
-        lunch_items = st.multiselect("Lunch Items", veg_items + nonveg_items)
-else:
-    lunch_items = []
+stress_category = "Low" if stress_level <= 3 else ("Normal" if stress_level <= 6 else "High")
 
-# DINNER
-if have_dinner == "Yes":
-    if diet_type == "Vegetarian":
-        dinner_items = st.multiselect("Dinner Items", veg_items)
-    elif diet_type == "Non-Vegetarian":
-        dinner_items = st.multiselect("Dinner Items", nonveg_items)
-    else:
-        dinner_items = st.multiselect("Dinner Items", veg_items + nonveg_items)
-else:
-    dinner_items = []
+st.progress(min(max(stress_level / 10.0, 0.0), 1.0))
+st.write(f"Stress Level: {stress_level}/10 — {stress_category}")
 
-# ---------------------------
-# USE OF PREDICTIVE SYSTEM
-# ---------------------------
-predictive_usage = st.selectbox("Do you regularly use this predictive system?", ["No", "Yes"])
+mood = st.selectbox("How do you feel today?", ["😊 Happy", "😐 Neutral", "😔 Sad", "😟 Stressed", "😡 Angry"])
+mindfulness = st.slider("Minutes of Mindfulness / Meditation Everyday", 0, 60, 0)
 
-# ---------------------------
-# CHRONIC DISEASE
-# ---------------------------
-chronic_disease = st.selectbox("Any Chronic Disease?", ["No", "Diabetes", "Hypertension", "Asthma", "Other"])
+# --------------------------------------------------------------------------
+# --- PREDICTION AND PDF GENERATION ---
+# --------------------------------------------------------------------------
+st.markdown("---")
 
-# ---------------------------
-#       COMPUTE BMI
-# ---------------------------
-bmi = round(weight / ((height/100) ** 2), 2)
+# Prepare breakfast/lunch/dinner text for PDF
+breakfast_text = ", ".join(breakfast_selected) if breakfast_selected else ("Skipped" if have_breakfast=="No" else "Not specified")
+lunch_text = ", ".join(lunch_selected) if lunch_selected else ("Skipped" if have_lunch=="No" else "Not specified")
+dinner_text = ", ".join(dinner_selected) if dinner_selected else ("Skipped" if have_dinner=="No" else "Not specified")
 
-# ---------------------------
-#       PREDICT BUTTON
-# ---------------------------
-if st.button("Predict Health Risk"):
+if st.button("Predict My Risk & Prepare Report"):
 
-    input_df = pd.DataFrame([[
-        gender, age, bmi, physical_activity, smoking, alcohol,
-        cholesterol, bp, diabetes, sleep_hours, stress, diet_type,
-        predictive_usage, chronic_disease
-    ]], columns=model_feature_order)
+    input_data = pd.DataFrame({
+        'personnel_id':[personnel_id],
+        'post':[post],
+        'posted_city':[posted_city],
+        'pollution_index':[pollution_index],
+        'city_workload_index':[city_workload_index],
+        'age':[age],
+        'gender':[gender],
+        'years_of_service':[years_of_service],
+        'height_cm':[height_cm],
+        'weight_kg':[weight_kg],
+        'bmi':[bmi],
+        'systolic_bp':[systolic_bp],
+        'diastolic_bp':[diastolic_bp],
+        'heart_rate':[heart_rate],
+        'spo2':[spo2],
+        'fasting_blood_sugar':[fasting_blood_sugar],
+        'cholesterol':[cholesterol],
+        'chronic_disease':[chronic_disease_other],
+        'sleep_hours':[sleep_hours],
+        'exercise_mins_per_week':[exercise_mins_per_week],
+        'smoking':[smoking],
+        'alcohol':[alcohol],
+        'stress_level':[stress_level],
+        'shift_pattern':[shift_pattern],
+        'working_hours_per_week':[working_hours_per_week],
+        'healthcare_scheme':[healthcare_scheme],
+        'technological_support':[technological_support],
+        'predictive_system_usage':["Yes"]
+    })
 
-    encoded = safe_transform(input_df)
-    scaled = scaler.transform(encoded)
-    prediction = model.predict(scaled)[0]
+    numeric_cols = ['personnel_id','pollution_index','city_workload_index','age','years_of_service',
+                    'height_cm','weight_kg','bmi','systolic_bp','diastolic_bp','heart_rate','spo2',
+                    'fasting_blood_sugar','cholesterol','sleep_hours','exercise_mins_per_week',
+                    'stress_level','working_hours_per_week']
+    for c in numeric_cols:
+        input_data[c] = pd.to_numeric(input_data[c], errors='coerce')
 
-    risk = ["Low Risk", "Medium Risk", "High Risk"][prediction]
+    categorical_cols = ['post','posted_city','gender','chronic_disease','smoking','alcohol',
+                        'shift_pattern','healthcare_scheme','technological_support','predictive_system_usage']
 
-    st.success(f"Predicted Risk Level: **{risk}**")
+    input_encoded = safe_transform(ct_encoder, input_data, df, categorical_cols)
+    risk_score = float(xgb_model.predict(input_encoded)[0])
 
-    # ---------------------------
-    #      PDF GENERATION
-    # ---------------------------
+    if smoking == "Occasionally": risk_score += 5
+    elif smoking == "Regularly": risk_score += 10
+    if alcohol == "Occasionally": risk_score += 3
+    elif alcohol == "Regularly": risk_score += 8
+
+    risk_category = "✅ Normal" if risk_score < 40 else ("⚠ Borderline" if risk_score < 70 else "❌ High Risk")
+
+    st.subheader("📊 Risk Result")
+    st.write(f"**Risk Score:** {risk_score:.1f}")
+    st.write(f"**Risk Category:** {risk_category}")
+
+    # ----------------------------------------------------------------------
+    # PDF START
+    # ----------------------------------------------------------------------
     buffer = io.BytesIO()
-    pdf = SimpleDocTemplate(buffer, pagesize=letter)
+    pdf = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=36, leftMargin=36, topMargin=36, bottomMargin=36)
     styles = getSampleStyleSheet()
+    styles.add(ParagraphStyle(name='CenterTitle', alignment=1, fontSize=14, spaceAfter=8))
+    styles.add(ParagraphStyle(name='Small', fontSize=9))
     elements = []
 
-    elements.append(Paragraph("<b>Predictive Healthcare Report</b>", styles["Title"]))
-    elements.append(Spacer(1, 12))
+    try:
+        logo = Image("—Pngtree—gold police officer badge_7258551.png", width=60, height=60)
+        logo.hAlign = 'CENTER'
+        elements.append(logo)
+        elements.append(Spacer(1,8))
+    except:
+        pass
 
-    # USER INFO TABLE
-    user_info = [
-        ["Field", "Value"],
+    elements.append(Paragraph("Predictive Healthcare Report", styles['CenterTitle']))
+    elements.append(Paragraph(f"Generated on: {datetime.datetime.now().strftime('%d-%m-%Y %H:%M:%S')}", styles['Small']))
+    elements.append(Spacer(1,12))
+
+    # DEMOGRAPHICS TABLE
+    demo_data = [
         ["Personnel ID", personnel_id],
-        ["Name", name],
+        ["Age", age],
         ["Gender", gender],
-        ["Age", str(age)],
-        ["BMI", str(bmi)]
+        ["Post", post],
+        ["Posted City", posted_city],
+        ["Years of Service", years_of_service],
+        ["Pollution Index", f"{pollution_index:.2f}"],
+        ["City Workload Index", f"{city_workload_index:.2f}"],
+        ["BMI", bmi],
+        ["Health / Schemes Used", current_health_details]
     ]
-    t1 = Table(user_info)
-    t1.setStyle(TableStyle([("BACKGROUND", (0,0), (-1,0), colors.lightgrey), ("GRID", (0,0), (-1,-1), 1, colors.black)]))
-    elements.append(t1)
-    elements.append(Spacer(1, 12))
 
-    # MEDICAL TABLE
-    med_table = [
-        ["Parameter", "Value"],
-        ["Physical Activity", physical_activity],
+    elements.append(Paragraph("Personnel & Demographics", styles['Heading2']))
+    elements.append(Table(demo_data, colWidths=[180, 300], style=[('GRID',(0,0),(-1,-1),0.3,colors.grey)]))
+    elements.append(Spacer(1,10))
+
+    # VITAL SIGNS
+    vitals_data = [
+        ["BP Level", bp_level],
+        ["Systolic", f"{systolic_bp} mmHg"],
+        ["Diastolic", f"{diastolic_bp} mmHg"],
+        ["Cholesterol Level", cholesterol_level],
+        ["Cholesterol", f"{cholesterol} mg/dL"],
+        ["Diabetes Level", diabetes_level],
+        ["Fasting Blood Sugar", f"{fasting_blood_sugar} mg/dL"],
+        ["SpO₂ Level", spo2_level],
+        ["SpO₂ Estimated", f"{spo2}%"],
+        ["Heart Rate Level", heart_level],
+        ["Heart Rate", f"{heart_rate} bpm"],
+        ["Sleep Hours (per day)", f"{sleep_hours}"]
+    ]
+    elements.append(Paragraph("Vital Signs & Sleep", styles['Heading2']))
+    elements.append(Table(vitals_data, colWidths=[180, 300], style=[('GRID',(0,0),(-1,-1),0.3,colors.grey)]))
+    elements.append(Spacer(1,10))
+
+    # LIFESTYLE TABLE (including breakfast, lunch & dinner)
+    lifestyle_data = [
+        ["Breakfast Taken?", have_breakfast],
+        ["Breakfast Items", breakfast_text],
+        ["Lunch Taken?", have_lunch],
+        ["Lunch Items", lunch_text],
+        ["Dinner Taken?", have_dinner],
+        ["Dinner Items", dinner_text],
+        ["Exercise (mins/week)", exercise_mins_per_week],
+        ["Exercise Types", ", ".join(exercise_types) if exercise_types else "None"],
         ["Smoking", smoking],
         ["Alcohol", alcohol],
-        ["Blood Pressure", bp],
-        ["Cholesterol", cholesterol],
-        ["Diabetes", diabetes],
-        ["Stress Level", str(stress)],
-        ["Sleep Hours", str(sleep_hours)]
+        ["Daily Water Intake (L)", water_intake_liters],
+        ["Technological Devices", ", ".join(technological_devices) if technological_devices else "None"],
+        ["Wellness Program", wellness_program],
+        ["Healthcare Scheme", healthcare_scheme],
+        ["Use of Technology", technological_support]
     ]
-    t2 = Table(med_table)
-    t2.setStyle(TableStyle([("BACKGROUND", (0,0), (-1,0), colors.lightgrey), ("GRID", (0,0), (-1,-1), 1, colors.black)]))
-    elements.append(t2)
-    elements.append(Spacer(1, 12))
 
-    # DIET TABLE
-    diet_table = [
-        ["Meal", "Items"],
-        ["Breakfast", ", ".join(breakfast_items)],
-        ["Lunch", ", ".join(lunch_items)],
-        ["Dinner", ", ".join(dinner_items)]
+    elements.append(Paragraph("Lifestyle, Diet & Meals", styles['Heading2']))
+    elements.append(
+        Table(
+            lifestyle_data,
+            colWidths=[180, 300],
+            style=[('GRID', (0,0), (-1,-1), 0.3, colors.grey)]
+        )
+    )
+    elements.append(Spacer(1, 10))
+
+    # OCCUPATIONAL
+    occ_data = [
+        ["Shift Pattern", shift_pattern],
+        ["Working Hours/week", working_hours_per_week],
+        ["Stress Level (1-10)", stress_level],
+        ["Stress Category", stress_category],
+        ["Mood Today", mood],
+        ["Mindfulness (mins/day)", mindfulness]
     ]
-    t3 = Table(diet_table)
-    t3.setStyle(TableStyle([("BACKGROUND", (0,0), (-1,0), colors.lightgrey), ("GRID", (0,0), (-1,-1), 1, colors.black)]))
-    elements.append(t3)
-    elements.append(Spacer(1, 12))
-
-    # RISK
-    elements.append(Paragraph(f"<b>Predicted Health Risk:</b> {risk}", styles["Heading2"]))
-    elements.append(Spacer(1, 12))
+    elements.append(Paragraph("Occupational & Mental Health", styles['Heading2']))
+    elements.append(
+        Table(
+            occ_data,
+            colWidths=[180, 300],
+            style=[('GRID', (0,0), (-1,-1), 0.3, colors.grey)]
+        )
+    )
+    elements.append(Spacer(1, 10))
 
     # SUGGESTIONS
-    elements.append(Paragraph("<b>Personalized Suggestions:</b>", styles["Heading2"]))
-    suggestions = [
-        "• Maintain a balanced home-cooked diet.",
-        "• Avoid processed and fried food.",
-        "• Follow daily walking or jogging routines.",
-        "• Drink 3–4 liters of water daily.",
-        "• Prefer low-salt and low-oil meals.",
-        "• Practice meditation or breathing exercises.",
-        "• Take sufficient sleep and maintain a consistent schedule."
-    ]
-    for s in suggestions:
-        elements.append(Paragraph(s, styles["Normal"]))
+    suggestion_list = []
+    if risk_score >= 70:
+        suggestion_list.append("High risk detected — immediate medical follow-up recommended.")
+    elif risk_score >= 40:
+        suggestion_list.append("Borderline risk — schedule a health check within 1–3 months.")
+    else:
+        suggestion_list.append("Risk within normal range — maintain routine monitoring.")
 
-    elements.append(Spacer(1, 20))
-    elements.append(Paragraph(f"Generated on: {datetime.now().strftime('%d-%m-%Y %H:%M')}", styles["Normal"]))
+    if spo2 < 95:
+        suggestion_list.append("Low SpO₂ — consider a proper oxygen saturation check.")
+    if systolic_bp >= 140 or diastolic_bp >= 90:
+        suggestion_list.append("High BP — regular monitoring recommended.")
+    if fasting_blood_sugar >= 125:
+        suggestion_list.append("High fasting sugar — follow up for diabetes screening.")
+    if cholesterol >= 240:
+        suggestion_list.append("High cholesterol — dietary adjustments needed.")
+    if stress_level >= 7:
+        suggestion_list.append("High stress — consider counseling or relaxation activities.")
+
+    # Meal-based suggestions
+    if have_breakfast == "No":
+        suggestion_list.append("You are skipping breakfast — this affects metabolism and energy levels.")
+    if have_lunch == "No":
+        suggestion_list.append("You are skipping lunch — ensure mid-day nutrition.")
+    if have_dinner == "No":
+        suggestion_list.append("You are skipping dinner — avoid long fasting gaps.")
+
+    suggestion_list.append("Maintain balanced diet, regular exercise, and 7–8 hours sleep.")
+    suggestion_list.append("Limit tobacco/alcohol and stay hydrated.")
+    suggestion_list.append("Use department health schemes and digital tools regularly.")
+
+    elements.append(Paragraph("Risk Prediction & Suggestions", styles['Heading2']))
+    elements.append(Paragraph(f"Risk Score: {risk_score:.1f} — {risk_category}", styles['Normal']))
+
+    for s in suggestion_list:
+        elements.append(Paragraph(f"• {s}", styles['Normal']))
+        elements.append(Spacer(1, 4))
+
+    elements.append(Spacer(1, 18))
+    elements.append(Paragraph("© 2025 Police Health Analytics | Developed for Research", styles['Small']))
 
     pdf.build(elements)
-    buffer.seek(0)
 
+    buffer.seek(0)
+    pdf_bytes = buffer.getvalue()
+
+    st.success("Report prepared — download below.")
     st.download_button(
-        label="Download Full PDF Report",
-        data=buffer,
-        file_name="Health_Report.pdf",
+        label="📥 Download Health Report (PDF)",
+        data=pdf_bytes,
+        file_name=f"health_report_{int(personnel_id)}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
         mime="application/pdf"
     )
+
+st.markdown("---")
+st.caption("© 2025 Police Health Analytics | Developed for Research and Awareness")
 
