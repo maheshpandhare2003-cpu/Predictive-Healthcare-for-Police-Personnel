@@ -14,7 +14,7 @@ from reportlab.lib import colors
 
 # --- PAGE CONFIG ---
 st.set_page_config(
-    page_title="Predictive Healthcare for Police Personnel",
+    page_title="Predictive Healthcare Framework for Police Personnel",
     page_icon="—Pngtree—gold police officer badge_7258551.png",
     layout="wide"
 )
