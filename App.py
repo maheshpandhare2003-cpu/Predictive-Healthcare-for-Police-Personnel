@@ -311,6 +311,7 @@ technological_devices = st.multiselect(
 )
 
 wellness_program = st.radio("Wellness Programs Provided by Department?", ["Yes", "No", "Sometimes"])
+healthcare_scheme = st.selectbox("Healthcare Scheme Used", df['healthcare_scheme'].unique())
 technological_support = st.selectbox("Use of Technology in Health Monitoring", ["Low", "Medium", "High"])
 # --------------------------------------------------------------------------
 # --- OCCUPATIONAL & MENTAL HEALTH ---
