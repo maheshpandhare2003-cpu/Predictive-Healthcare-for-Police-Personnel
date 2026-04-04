@@ -19,68 +19,14 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- STYLING (Google Survey Style) ---
+# --- STYLING ---
 st.markdown("""
 <style>
-
-/* Background like Google Forms */
-.stApp{
-    background-color:#f0ebf8;
-}
-
-/* Main Form Container */
-.block-container{
-    background:white;
-    padding:35px;
-    border-radius:10px;
-    box-shadow:0px 2px 10px rgba(0,0,0,0.1);
-    max-width:900px;
-}
-
-/* Title */
-h1{
-    color:#202124;
-    font-weight:600;
-}
-
-/* Section headers */
-h2,h3{
-    color:#5f6368;
-    border-bottom:1px solid #e0e0e0;
-    padding-bottom:5px;
-}
-
-/* Inputs */
-input, textarea{
-    border-radius:6px !important;
-}
-
-/* Dropdown */
-div[data-baseweb="select"]{
-    border-radius:6px;
-}
-
-/* Buttons */
-.stButton > button{
-    background:#673ab7;
-    color:white;
-    border-radius:6px;
-    padding:10px 20px;
-    border:none;
-    font-weight:600;
-}
-
-.stButton > button:hover{
-    background:#5e35b1;
-}
-
-/* Metrics */
-[data-testid="stMetric"]{
-    background:#f8f9fa;
-    padding:10px;
-    border-radius:6px;
-}
-
+body { background-color: #f8f9fa; color: #212529; font-family: "Segoe UI", sans-serif; }
+h1,h2,h3,h4 { color: #0a2647; }
+.stButton > button { background-color:#0a2647; color:#fff; border-radius:8px; padding:0.6em 1.2em; font-weight:600;}
+.stButton > button:hover { background-color:#144272; }
+div.stDownloadButton > button { background-color:#0a2647; color:#fff; border-radius:8px; padding:0.5em 1em; }
 </style>
 """, unsafe_allow_html=True)
 
