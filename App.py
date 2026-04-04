@@ -151,7 +151,7 @@ st.text_input("BMI", value=bmi, disabled=True)
 
 st.header("🩺 Police personnel Scheme Policy ")
 
-health_conditions = st.multiselect(
+healthcare_scheme = st.multiselect(
     "Select schemes:",
     [
         "MPKAY",
@@ -168,11 +168,11 @@ health_conditions = st.multiselect(
 
 # Show text box if "Other" is selected
 other_scheme = ""
-if "Other" in health_conditions:
+if "Other" in healthcare_scheme:
     other_scheme = st.text_input("Enter Other Scheme")
 
 # Remove "Other" from list and add custom value
-health_list = [x for x in health_conditions if x != "Other"]
+health_list = [x for x in healthcare_scheme if x != "Other"]
 
 if other_scheme:
     health_list.append(other_scheme)
@@ -311,7 +311,6 @@ technological_devices = st.multiselect(
 )
 
 wellness_program = st.radio("Wellness Programs Provided by Department?", ["Yes", "No", "Sometimes"])
-#healthcare_scheme = st.selectbox("Healthcare Scheme Used", df['healthcare_scheme'].unique())
 technological_support = st.selectbox("Use of Technology in Health Monitoring", ["Low", "Medium", "High"])
 # --------------------------------------------------------------------------
 # --- OCCUPATIONAL & MENTAL HEALTH ---
