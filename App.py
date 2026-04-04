@@ -154,6 +154,12 @@ st.info(f"Estimated SpO₂ Level: **{spo2_level} ({spo2}%)**")
 heart_level = st.selectbox("Heart Rate Level", ["Low", "Normal", "High"])
 heart_rate = get_numeric_from_level(heart_level, 55, 80, 110)
 
+
+# --------------------------------------------------------------------------
+# --- REQUIRED CHANGE 2: CHANGE HEADING NAME ---
+# --------------------------------------------------------------------------
+st.header("🩺 Police Personnel Health Details")
+
 # Chronic disease
 chronic_disease = st.selectbox("Chronic Disease", df['chronic_disease'].unique())
 if chronic_disease == "Other":
@@ -161,10 +167,6 @@ if chronic_disease == "Other":
 else:
     chronic_disease_other = chronic_disease
 
-# --------------------------------------------------------------------------
-# --- REQUIRED CHANGE 2: CHANGE HEADING NAME ---
-# --------------------------------------------------------------------------
-st.header("🩺 Police Personnel latest Health details/Diseases")
 
 do_exercise = st.radio("Do you exercise?", ["Yes", "No"])
 if do_exercise == "Yes":
@@ -177,7 +179,7 @@ else:
 # --------------------------------------------------------------------------
 # --- REQUIRED CHANGE 3: FULL DIET LOGIC (Veg / Non-Veg / Both) ---
 # --------------------------------------------------------------------------
-st.subheader("🍽 Diet Details (NEW)")
+st.subheader("🍽 Diet Details: ")
 
 # New: Breakfast / Lunch / Dinner daily questions
 have_breakfast = st.radio("Do you have Breakfast every day?", ["Yes", "No"])
