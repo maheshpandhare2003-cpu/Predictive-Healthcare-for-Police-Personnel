@@ -19,14 +19,60 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- STYLING ---
+# --- GOOGLE FORM STYLE ---
 st.markdown("""
 <style>
-body { background-color: #f8f9fa; color: #212529; font-family: "Segoe UI", sans-serif; }
-h1,h2,h3,h4 { color: #0a2647; }
-.stButton > button { background-color:#0a2647; color:#fff; border-radius:8px; padding:0.6em 1.2em; font-weight:600;}
-.stButton > button:hover { background-color:#144272; }
-div.stDownloadButton > button { background-color:#0a2647; color:#fff; border-radius:8px; padding:0.5em 1em; }
+
+/* Page background similar to Google Forms */
+.stApp{
+    background-color:#f0ebf8;
+}
+
+/* Center survey container */
+.block-container{
+    max-width:850px;
+    padding-top:30px;
+    padding-bottom:30px;
+}
+
+/* Form card sections */
+section.main > div{
+    background:white;
+    padding:30px;
+    border-radius:12px;
+    box-shadow:0px 2px 8px rgba(0,0,0,0.08);
+}
+
+/* Headings */
+h1{
+    font-size:36px;
+    font-weight:600;
+}
+
+h2{
+    border-bottom:1px solid #e5e5e5;
+    padding-bottom:8px;
+    margin-top:25px;
+}
+
+/* Buttons */
+.stButton > button{
+    border-radius:6px;
+    padding:10px 18px;
+    font-weight:600;
+}
+
+/* Download button */
+div.stDownloadButton > button{
+    border-radius:6px;
+    padding:10px 18px;
+}
+
+/* Inputs spacing */
+div[data-testid="stVerticalBlock"] > div{
+    margin-bottom:10px;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
