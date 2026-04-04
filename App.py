@@ -76,7 +76,15 @@ with col1:
     gender = st.radio("Gender", ["Male", "Female", "Other"])
 with col2:
     years_of_service = st.number_input("Years of Service", min_value=0, step=1)
-    post = st.selectbox("Post", df['post'].unique())
+
+    post_options = list(df['post'].unique())
+    post_options.append("Other")
+
+    post = st.selectbox("Post", post_options)
+
+    if post == "Other":
+        post = st.text_input("Enter your Post")
+
     posted_city = st.selectbox("Posted City", df['posted_city'].unique())
 with col3:
     city_row = df[df['posted_city'] == posted_city]
@@ -306,7 +314,7 @@ if st.button("Predict My Risk & Prepare Report"):
 
     input_data = pd.DataFrame({
         'personnel_id':[personnel_id],
-        'post':[post],
+        'post':[post if post in df['post'].values else df['post'].iloc[0]],
         'posted_city':[posted_city],
         'pollution_index':[pollution_index],
         'city_workload_index':[city_workload_index],
