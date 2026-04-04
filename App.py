@@ -73,8 +73,8 @@ col1, col2, col3 = st.columns(3)
 
 with col1:
 
-    # UPDATED: ALPHANUMERIC PERSONNEL ID
-    personnel_id = st.text_input("Personnel ID ")
+    # UPDATED PERSONNEL ID (ALPHANUMERIC)
+    personnel_id = st.text_input("Personnel ID")
 
     age = st.number_input("Age (years)", min_value=18, max_value=100)
     gender = st.radio("Gender", ["Male", "Female", "Other"])
@@ -105,34 +105,24 @@ st.text_input("BMI", value=bmi, disabled=True)
 # --------------------------------------------------------------------------
 # --- Police personnel using Schemes / System ---
 # --------------------------------------------------------------------------
-st.header("🩺 Police personnel Scheme Policy")
+st.header("🩺 Police personnel using Schemes / System")
 
 health_conditions = st.multiselect(
-    "Select schemes/systems: ",
-    [
-        "MPKAY",
-        "Dhanwantari",
-        "MJPJAY",
-        "MPFHS",
-        "State Government Medical Reimbursement Scheme",
-        "CGHS",
-        "Cashless Treatment Scheme",
-        "Ayushman Bharat",
-        "Other"
-    ]
+    "Select schemes/systems or current conditions:",
+    ["High BP", "Low BP", "Cholesterol", "Diabetes", "Thyroid", "Heart Disease",
+     "Asthma", "MPKAY", "Family Health Scheme", "Dhanwantari", "MJPJAY", "Preventive Camps",
+     "Digital Health Records", "Police Hospitals", "Other"]
 )
 
 other_scheme = ""
 if "Other" in health_conditions:
-    other_scheme = st.text_input("Enter New Scheme Name")
+    other_scheme = st.text_input("Enter new scheme / condition")
 
-if health_conditions:
-    schemes_list = [s for s in health_conditions if s != "Other"]
-    if other_scheme:
-        schemes_list.append(other_scheme)
-    current_health_details = ", ".join(schemes_list)
-else:
-    current_health_details = "None"
+schemes_list = [s for s in health_conditions if s != "Other"]
+if other_scheme:
+    schemes_list.append(other_scheme)
+
+current_health_details = ", ".join(schemes_list) if schemes_list else "None"
 
 # --------------------------------------------------------------------------
 # --- VITAL SIGNS ---
@@ -149,8 +139,8 @@ cholesterol = get_numeric_from_level(cholesterol_level, 150, 200, 270)
 diabetes_level = st.selectbox("Diabetes Level", ["Low", "Normal", "High"])
 fasting_blood_sugar = get_numeric_from_level(diabetes_level, 70, 100, 125)
 
+# SPO2
 st.subheader("🫁 Oxygen Saturation (SpO₂) Estimation")
-
 spo2_question = st.radio(
     "How do you currently feel?",
     ["Normal breathing, no fatigue",
@@ -167,13 +157,13 @@ heart_level = st.selectbox("Heart Rate Level", ["Low", "Normal", "High"])
 heart_rate = get_numeric_from_level(heart_level, 55, 80, 110)
 
 # --------------------------------------------------------------------------
-# --- PREDICTION AND PDF GENERATION ---
+# --- PREDICTION ---
 # --------------------------------------------------------------------------
-
 st.markdown("---")
 
 if st.button("Predict My Risk & Prepare Report"):
 
+    # Convert alphanumeric ID to numeric for ML model
     personnel_numeric = int(''.join(filter(str.isdigit, personnel_id))) if any(char.isdigit() for char in personnel_id) else 0
 
     input_data = pd.DataFrame({
@@ -206,11 +196,7 @@ if st.button("Predict My Risk & Prepare Report"):
         'predictive_system_usage':["Yes"]
     })
 
-    categorical_cols = [
-        'post','posted_city','gender','smoking','alcohol',
-        'shift_pattern','healthcare_scheme',
-        'technological_support','predictive_system_usage'
-    ]
+    categorical_cols = ['post','posted_city','gender','smoking','alcohol','shift_pattern','healthcare_scheme','technological_support','predictive_system_usage']
 
     input_encoded = safe_transform(ct_encoder, input_data, df, categorical_cols)
 
