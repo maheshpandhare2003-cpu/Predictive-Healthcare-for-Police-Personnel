@@ -23,12 +23,12 @@ st.set_page_config(
 st.markdown("""
 <style>
 
-/* Background like Google Forms */
+/* Page background */
 .stApp{
     background-color:#f0ebf8;
 }
 
-/* Main Form Container */
+/* Main form container */
 .block-container{
     background:white;
     padding:35px;
@@ -37,27 +37,30 @@ st.markdown("""
     max-width:900px;
 }
 
-/* Title */
+/* ALL TEXT BLACK */
+body, p, label, span, div{
+    color:black !important;
+}
+
+/* Titles */
 h1{
-    color:#202124;
+    color:black !important;
     font-weight:600;
 }
 
-/* Section headers */
-h2,h3{
-    color:#5f6368;
-    border-bottom:1px solid #e0e0e0;
-    padding-bottom:5px;
+h2,h3,h4{
+    color:black !important;
 }
 
 /* Inputs */
 input, textarea{
     border-radius:6px !important;
+    color:black !important;
 }
 
-/* Dropdown */
+/* Dropdown text */
 div[data-baseweb="select"]{
-    border-radius:6px;
+    color:black !important;
 }
 
 /* Buttons */
@@ -72,13 +75,6 @@ div[data-baseweb="select"]{
 
 .stButton > button:hover{
     background:#5e35b1;
-}
-
-/* Metrics */
-[data-testid="stMetric"]{
-    background:#f8f9fa;
-    padding:10px;
-    border-radius:6px;
 }
 
 </style>
