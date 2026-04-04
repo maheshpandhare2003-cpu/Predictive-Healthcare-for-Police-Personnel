@@ -224,10 +224,10 @@ else:
 
 do_exercise = st.radio("Do you exercise?", ["Yes", "No"])
 if do_exercise == "Yes":
-    exercise_mins_per_day = st.number_input("Exercise minutes per day", min_value=0, max_value=1440, step=5)
+    exercise_mins_per_week = st.number_input("Exercise minutes per week", min_value=0, max_value=10000, step=5)
     exercise_types = st.multiselect("Select exercise types", ["Swimming","Running","Jogging","Walking","Weight training","Cycling","Aerobics","Yoga"])
 else:
-    exercise_mins_per_day = 0
+    exercise_mins_per_week = 0
     exercise_types = []
 
 # --------------------------------------------------------------------------
@@ -318,18 +318,17 @@ technological_support = st.selectbox("Use of Technology in Health Monitoring", [
 # --------------------------------------------------------------------------
 st.header("💼 Occupational & Mental Health")
 shift_pattern = st.selectbox("Shift Pattern", ["Day", "Night", "Rotational"])
-working_hours_per_day = st.number_input("Working hours per day", min_value=1, max_value=24)
+working_hours_per_week = st.number_input("Working hours per week", min_value=1, max_value=120)
 
 stress_calc = 5
 if sleep_hours < 6: stress_calc += 3
 elif sleep_hours < 7: stress_calc += 2
 elif sleep_hours < 8: stress_calc += 1
-if working_hours_per_day > 12: stress_calc += 3
-elif working_hours_per_day > 10: stress_calc += 2
-elif working_hours_per_day > 8: stress_calc += 1
-
-if exercise_mins_per_day == 0: stress_calc += 2
-elif exercise_mins_per_day < 30: stress_calc += 1
+if working_hours_per_week > 60: stress_calc += 3
+elif working_hours_per_week > 50: stress_calc += 2
+elif working_hours_per_week > 40: stress_calc += 1
+if exercise_mins_per_week == 0: stress_calc += 2
+elif exercise_mins_per_week < 60: stress_calc += 1
 if shift_pattern.lower() in ["night", "rotational"]: stress_calc += 2
 auto_stress_level = int(np.clip(stress_calc, 1, 10))
 
@@ -379,12 +378,12 @@ if st.button("Predict My Risk & Prepare Report"):
         'cholesterol':[cholesterol],
         'chronic_disease':[chronic_disease_other],
         'sleep_hours':[sleep_hours],
-        'exercise_mins_per_day':[exercise_mins_per_day],
-        'working_hours_per_day':[working_hours_per_day],
+        'exercise_mins_per_week':[exercise_mins_per_week],
         'smoking':[smoking],
         'alcohol':[alcohol],
         'stress_level':[stress_level],
         'shift_pattern':[shift_pattern],
+        'working_hours_per_week':[working_hours_per_week],
         'healthcare_scheme':[healthcare_scheme],
         'technological_support':[technological_support],
         'predictive_system_usage':["Yes"]
