@@ -311,7 +311,7 @@ technological_devices = st.multiselect(
 )
 
 wellness_program = st.radio("Wellness Programs Provided by Department?", ["Yes", "No", "Sometimes"])
-healthcare_scheme = st.selectbox("Healthcare Scheme Used", df['healthcare_scheme'].unique())
+#healthcare_scheme = st.selectbox("Healthcare Scheme Used", df['healthcare_scheme'].unique())
 technological_support = st.selectbox("Use of Technology in Health Monitoring", ["Low", "Medium", "High"])
 # --------------------------------------------------------------------------
 # --- OCCUPATIONAL & MENTAL HEALTH ---
@@ -549,7 +549,7 @@ if st.button("Predict My Risk & Prepare Report"):
         suggestion_list.append("You are skipping dinner — avoid long fasting gaps.")
 
     suggestion_list.append("Maintain balanced diet, regular exercise, and 7–8 hours sleep.")
-    suggestion_list.append("Limit tobacco/alcohol and stay hydrated.")
+    suggestion_list.append("Limit alcohol and stay hydrated.")
     suggestion_list.append("Use department health schemes and digital tools regularly.")
 
     elements.append(Paragraph("Risk Prediction & Suggestions", styles['Heading2']))
