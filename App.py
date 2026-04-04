@@ -19,81 +19,66 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- STYLING (SURVEY FORM DESIGN) ---
+# --- STYLING (Google Survey Style) ---
 st.markdown("""
 <style>
 
-/* MAIN BACKGROUND */
-.stApp {
-    background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
-    font-family: 'Segoe UI', sans-serif;
+/* Background like Google Forms */
+.stApp{
+    background-color:#f0ebf8;
 }
 
-/* FORM CONTAINER */
-.block-container {
-    background-color: white;
-    padding: 40px;
-    border-radius: 12px;
-    box-shadow: 0px 6px 25px rgba(0,0,0,0.25);
-}
-
-/* HEADINGS */
-h1 {
-    color:#0a2647;
-    text-align:center;
-    font-weight:700;
-}
-
-h2,h3,h4{
-    color:#144272;
-    border-bottom:2px solid #e6e6e6;
-    padding-bottom:6px;
-    margin-top:25px;
-}
-
-/* INPUT BOX */
-input, textarea {
-    border-radius:8px !important;
-}
-
-/* SELECT BOX */
-div[data-baseweb="select"]{
-    border-radius:8px;
-}
-
-/* BUTTON */
-.stButton > button {
-    background: linear-gradient(45deg,#0a2647,#144272);
-    color:white;
+/* Main Form Container */
+.block-container{
+    background:white;
+    padding:35px;
     border-radius:10px;
-    padding:10px 25px;
-    font-size:16px;
+    box-shadow:0px 2px 10px rgba(0,0,0,0.1);
+    max-width:900px;
+}
+
+/* Title */
+h1{
+    color:#202124;
     font-weight:600;
-    border:none;
-    transition:0.3s;
 }
 
-.stButton > button:hover {
-    background: linear-gradient(45deg,#144272,#205295);
-    transform:scale(1.05);
+/* Section headers */
+h2,h3{
+    color:#5f6368;
+    border-bottom:1px solid #e0e0e0;
+    padding-bottom:5px;
 }
 
-/* DOWNLOAD BUTTON */
-.stDownloadButton > button{
-    background:#205295;
+/* Inputs */
+input, textarea{
+    border-radius:6px !important;
+}
+
+/* Dropdown */
+div[data-baseweb="select"]{
+    border-radius:6px;
+}
+
+/* Buttons */
+.stButton > button{
+    background:#673ab7;
     color:white;
-    border-radius:10px;
+    border-radius:6px;
     padding:10px 20px;
+    border:none;
+    font-weight:600;
 }
 
-/* RADIO BUTTON SPACING */
-div.row-widget.stRadio > div{
-    flex-direction:row;
+.stButton > button:hover{
+    background:#5e35b1;
 }
 
-/* PROGRESS BAR */
-.stProgress > div > div > div > div{
-    background-color:#205295;
+/* Metrics */
+[data-testid="stMetric"]{
+    background:#f8f9fa;
+    padding:10px;
+    border-radius:6px;
 }
 
 </style>
