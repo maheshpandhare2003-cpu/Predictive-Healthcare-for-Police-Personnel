@@ -25,7 +25,7 @@ st.markdown("""
 
 /* Page background similar to Google Forms */
 .stApp{
-    background-color:#f0ebf8;
+    background-color:#000;
 }
 
 /* Center survey container */
