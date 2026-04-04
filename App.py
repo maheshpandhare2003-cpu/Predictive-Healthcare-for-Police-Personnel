@@ -74,7 +74,7 @@ col1, col2, col3 = st.columns(3)
 with col1:
 
     # UPDATED: ALPHANUMERIC PERSONNEL ID
-    personnel_id = st.text_input("Personnel ID (Example: MH1234 / POLICE01)")
+    personnel_id = st.text_input("Personnel ID ")
 
     age = st.number_input("Age (years)", min_value=18, max_value=100)
     gender = st.radio("Gender", ["Male", "Female", "Other"])
@@ -105,16 +105,34 @@ st.text_input("BMI", value=bmi, disabled=True)
 # --------------------------------------------------------------------------
 # --- Police personnel using Schemes / System ---
 # --------------------------------------------------------------------------
-st.header("🩺 Police personnel using Schemes / System")
+st.header("🩺 Police personnel Scheme Policy")
 
 health_conditions = st.multiselect(
-    "Select schemes/systems or current conditions:",
-    ["High BP", "Low BP", "Cholesterol", "Diabetes", "Thyroid", "Heart Disease",
-     "Asthma", "MPKAY", "Family Health Scheme", "Dhanwantari", "MJPJAY", "Preventive Camps",
-     "Digital Health Records", "Police Hospitals", "None"]
+    "Select schemes/systems: ",
+    [
+        "MPKAY",
+        "Dhanwantari",
+        "MJPJAY",
+        "MPFHS",
+        "State Government Medical Reimbursement Scheme",
+        "CGHS",
+        "Cashless Treatment Scheme",
+        "Ayushman Bharat",
+        "Other"
+    ]
 )
 
-current_health_details = ", ".join(health_conditions) if health_conditions else "None"
+other_scheme = ""
+if "Other" in health_conditions:
+    other_scheme = st.text_input("Enter New Scheme Name")
+
+if health_conditions:
+    schemes_list = [s for s in health_conditions if s != "Other"]
+    if other_scheme:
+        schemes_list.append(other_scheme)
+    current_health_details = ", ".join(schemes_list)
+else:
+    current_health_details = "None"
 
 # --------------------------------------------------------------------------
 # --- VITAL SIGNS ---
@@ -156,7 +174,6 @@ st.markdown("---")
 
 if st.button("Predict My Risk & Prepare Report"):
 
-    # CONVERT ALPHANUMERIC ID FOR MODEL
     personnel_numeric = int(''.join(filter(str.isdigit, personnel_id))) if any(char.isdigit() for char in personnel_id) else 0
 
     input_data = pd.DataFrame({
@@ -189,7 +206,11 @@ if st.button("Predict My Risk & Prepare Report"):
         'predictive_system_usage':["Yes"]
     })
 
-    categorical_cols = ['post','posted_city','gender','smoking','alcohol','shift_pattern','healthcare_scheme','technological_support','predictive_system_usage']
+    categorical_cols = [
+        'post','posted_city','gender','smoking','alcohol',
+        'shift_pattern','healthcare_scheme',
+        'technological_support','predictive_system_usage'
+    ]
 
     input_encoded = safe_transform(ct_encoder, input_data, df, categorical_cols)
 
