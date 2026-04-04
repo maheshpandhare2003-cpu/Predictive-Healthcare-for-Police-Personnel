@@ -19,16 +19,15 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- STYLING (Google Survey Style) ---
 st.markdown("""
 <style>
 
-/* Page background */
+/* Background */
 .stApp{
     background-color:#f0ebf8;
 }
 
-/* Main form container */
+/* Form container */
 .block-container{
     background:white;
     padding:35px;
@@ -37,33 +36,22 @@ st.markdown("""
     max-width:900px;
 }
 
-/* ALL TEXT BLACK */
-body, p, label, span, div{
-    color:black !important;
-}
-
 /* Titles */
 h1{
-    color:black !important;
-    font-weight:600;
+    color:black;
 }
 
 h2,h3,h4{
-    color:black !important;
+    color:black;
 }
 
-/* Inputs */
-input, textarea{
-    border-radius:6px !important;
+/* Field labels only */
+label{
     color:black !important;
+    font-weight:500;
 }
 
-/* Dropdown text */
-div[data-baseweb="select"]{
-    color:black !important;
-}
-
-/* Buttons */
+/* Button */
 .stButton > button{
     background:#673ab7;
     color:white;
