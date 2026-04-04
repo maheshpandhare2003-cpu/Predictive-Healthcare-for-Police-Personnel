@@ -71,7 +71,7 @@ def safe_transform(encoder, X, df_ref, categorical_cols):
 st.header("👤 Demographics Information")
 col1, col2, col3 = st.columns(3)
 with col1:
-    personnel_id = st.number_input("Personnel ID", min_value=1, step=1)
+    personnel_id = st.text_input("Personnel ID : ")
     age = st.number_input("Age (years)", min_value=18, max_value=100)
     gender = st.radio("Gender", ["Male", "Female", "Other"])
 with col2:
@@ -517,7 +517,7 @@ if st.button("Predict My Risk & Prepare Report"):
     st.download_button(
         label="📥 Download Health Report (PDF)",
         data=pdf_bytes,
-        file_name=f"health_report_{int(personnel_id)}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
+        file_name=f"health_report_{personnel_id}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
         mime="application/pdf"
     )
 
