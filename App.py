@@ -1,130 +1,128 @@
-# =====================================================
+# ============================================================
 # Predictive Healthcare Framework for Police Personnel
 # Streamlit Application
-# PART 1
-# =====================================================
+# Compatible with:
+# police_health_dataset.csv
+# ct_encoder.pkl
+# xgb_model.pkl
+# ============================================================
 
 import streamlit as st
 import pandas as pd
 import numpy as np
 import joblib
-import datetime
 import io
+import datetime
 
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib import colors
 
-
-# =====================================================
+# ============================================================
 # PAGE CONFIG
-# =====================================================
+# ============================================================
 
 st.set_page_config(
-    page_title="Predictive Healthcare Framework",
+    page_title="Predictive Healthcare System",
+    page_icon="🚑",
     layout="wide"
 )
 
 st.title("🚓 Predictive Healthcare Framework for Police Personnel")
 
-st.markdown(
-"""
-This system predicts **health risk levels of police personnel**
-using **machine learning and lifestyle indicators**.
-
-It evaluates:
-
-• Vital Signs  
-• Work Pattern  
-• Lifestyle Habits  
-• Diet  
-• Stress Levels  
-
-Then generates a **Health Risk Score and Suggestions**.
-"""
-)
-
-# =====================================================
-# LOAD MODEL FILES
-# =====================================================
-
-@st.cache_resource
-def load_model():
-
-    model = joblib.load("xgb_model.pkl")
-    encoder = joblib.load("ct_encoder.pkl")
-
-    return model, encoder
-
-
-xgb_model, ct_encoder = load_model()
-
-# =====================================================
-# LOAD DATASET
-# =====================================================
+# ============================================================
+# LOAD DATASET AND MODELS
+# ============================================================
 
 @st.cache_data
 def load_dataset():
-
-    df = pd.read_csv("police_health_dataset.csv")
-    return df
-
+    return pd.read_csv("police_health_dataset.csv")
 
 df = load_dataset()
 
-# =====================================================
-# HELPER FUNCTIONS
-# =====================================================
+@st.cache_resource
+def load_models():
+    encoder = joblib.load("ct_encoder.pkl")
+    model = joblib.load("xgb_model.pkl")
+    return encoder, model
 
-def get_numeric_from_level(level, low, normal, high):
+ct_encoder, xgb_model = load_models()
+
+# ============================================================
+# HELPER FUNCTIONS
+# ============================================================
+
+def level_to_value(level, low, normal, high):
 
     if level == "Low":
         return low
-    elif level == "Normal":
+
+    if level == "Normal":
         return normal
-    else:
-        return high
+
+    return high
 
 
-def align_columns(X, encoder):
+def estimate_spo2(condition):
 
-    try:
-        cols = encoder.feature_names_in_
-        return X[cols]
-    except:
-        return X
+    if condition == "Normal":
+        return 98
 
+    if condition == "Mild Breathlessness":
+        return 95
 
-def safe_transform(encoder, X, df_ref, categorical_cols):
+    if condition == "Moderate Breathlessness":
+        return 92
 
-    try:
-        return encoder.transform(X)
-
-    except Exception:
-
-        X2 = X.copy()
-
-        for col in categorical_cols:
-
-            if col in df_ref.columns:
-
-                known = list(df_ref[col].dropna().unique())
-
-                if known:
-
-                    X2[col] = X2[col].apply(
-                        lambda v: v if v in known else known[0]
-                    )
-
-        return encoder.transform(X2)
+    return 88
 
 
-# =====================================================
-# SECTION 1 — DEMOGRAPHICS
-# =====================================================
+def calculate_bmi(height_cm, weight_kg):
 
-st.header("👮 Personnel Demographics")
+    if height_cm == 0:
+        return 0
+
+    bmi = weight_kg / ((height_cm/100) ** 2)
+
+    return round(bmi, 2)
+
+
+def calculate_stress(sleep_hours, exercise, work_hours, shift):
+
+    stress = 4
+
+    if sleep_hours < 5:
+        stress += 4
+    elif sleep_hours < 6:
+        stress += 3
+    elif sleep_hours < 7:
+        stress += 2
+
+    if exercise == 0:
+        stress += 3
+    elif exercise < 60:
+        stress += 2
+
+    if work_hours > 60:
+        stress += 3
+    elif work_hours > 50:
+        stress += 2
+
+    if shift == "Night":
+        stress += 2
+
+    if shift == "Rotational":
+        stress += 2
+
+    return int(np.clip(stress, 1, 10))
+
+
+# ============================================================
+# DEMOGRAPHIC INFORMATION
+# ============================================================
+
+st.header("👤 Demographic Information")
 
 col1, col2, col3 = st.columns(3)
 
@@ -135,83 +133,65 @@ with col1:
     age = st.number_input(
         "Age",
         min_value=18,
-        max_value=100
+        max_value=70
     )
 
-    gender = st.radio(
+    gender = st.selectbox(
         "Gender",
-        ["Male", "Female", "Other"]
+        df["gender"].unique()
     )
-
 
 with col2:
 
     years_of_service = st.number_input(
         "Years of Service",
-        min_value=0,
-        max_value=40
+        0,
+        40
     )
 
     post = st.selectbox(
         "Police Post",
-        df["post"].dropna().unique()
+        df["post"].unique()
     )
 
     posted_city = st.selectbox(
         "Posted City",
-        df["posted_city"].dropna().unique()
+        df["posted_city"].unique()
     )
-
 
 with col3:
 
     height_cm = st.number_input(
         "Height (cm)",
-        min_value=120,
-        max_value=250
+        120,
+        220
     )
 
     weight_kg = st.number_input(
         "Weight (kg)",
-        min_value=30,
-        max_value=200
+        40,
+        150
     )
 
-# =====================================================
-# BMI CALCULATION
-# =====================================================
+bmi = calculate_bmi(height_cm, weight_kg)
 
-if height_cm > 0:
-    bmi = round(weight_kg / ((height_cm / 100) ** 2), 1)
-else:
-    bmi = 0
+st.metric("BMI", bmi)
 
-st.metric("Body Mass Index (BMI)", bmi)
+# ============================================================
+# CITY DATA EXTRACTION
+# ============================================================
 
-# =====================================================
-# SCHEME POLICY
-# =====================================================
+city_row = df[df["posted_city"] == posted_city]
 
-st.header("🏥 Healthcare Scheme")
+pollution_index = float(city_row["pollution_index"].iloc[0])
+city_workload_index = float(city_row["city_workload_index"].iloc[0])
 
-schemes = st.multiselect(
-    "Select applicable schemes",
-    [
-        "MPKAY",
-        "MJPJAY",
-        "ESIC",
-        "MPFHS",
-        "CGHS",
-        "State Medical Reimbursement",
-        "Cashless Treatment GR",
-        "None",
-        "Other"
-    ]
-)
+st.write("City Pollution Index:", pollution_index)
+st.write("City Workload Index:", city_workload_index)
 
-# =====================================================
+# ============================================================
 # VITAL SIGNS
-# =====================================================
+# ============================================================
 
 st.header("❤️ Vital Signs")
 
@@ -224,9 +204,8 @@ with col1:
         ["Low", "Normal", "High"]
     )
 
-    systolic_bp = get_numeric_from_level(bp_level, 95, 120, 150)
-    diastolic_bp = get_numeric_from_level(bp_level, 65, 80, 100)
-
+    systolic_bp = level_to_value(bp_level, 95, 120, 150)
+    diastolic_bp = level_to_value(bp_level, 65, 80, 95)
 
 with col2:
 
@@ -235,71 +214,62 @@ with col2:
         ["Low", "Normal", "High"]
     )
 
-    cholesterol = get_numeric_from_level(
+    cholesterol = level_to_value(
         cholesterol_level,
         150,
         200,
-        270
+        260
     )
-
 
 with col3:
 
     diabetes_level = st.selectbox(
-        "Diabetes Level",
+        "Blood Sugar Level",
         ["Low", "Normal", "High"]
     )
 
-    fasting_blood_sugar = get_numeric_from_level(
+    fasting_blood_sugar = level_to_value(
         diabetes_level,
         70,
         100,
-        125
+        130
     )
 
-# =====================================================
-# HEART RATE
-# =====================================================
-
-heart_level = st.selectbox(
+heart_rate_level = st.selectbox(
     "Heart Rate Level",
     ["Low", "Normal", "High"]
 )
 
-heart_rate = get_numeric_from_level(
-    heart_level,
+heart_rate = level_to_value(
+    heart_rate_level,
     55,
-    80,
+    75,
     110
 )
 
-# =====================================================
+# ============================================================
 # SPO2 ESTIMATION
-# =====================================================
+# ============================================================
 
-st.subheader("🫁 Oxygen Saturation (SpO₂)")
+st.header("🫁 Oxygen Level Estimation")
 
-spo2_condition = st.radio(
-    "Breathing condition",
+breathing_condition = st.selectbox(
+    "Breathing Condition",
     [
-        "Normal breathing",
-        "Slight breathlessness",
-        "Severe breathlessness"
+        "Normal",
+        "Mild Breathlessness",
+        "Moderate Breathlessness",
+        "Severe Breathlessness"
     ]
 )
 
-if spo2_condition == "Normal breathing":
-    spo2 = 98
-elif spo2_condition == "Slight breathlessness":
-    spo2 = 94
-else:
-    spo2 = 90
+spo2 = estimate_spo2(breathing_condition)
 
-st.write("Estimated SpO₂:", spo2, "%")
+st.metric("Estimated SpO₂", spo2)
 
-# =====================================================
-# LIFESTYLE SECTION
-# =====================================================
+# ============================================================
+# LIFESTYLE
+# ============================================================
 
 st.header("🏃 Lifestyle")
 
@@ -308,21 +278,17 @@ col1, col2 = st.columns(2)
 with col1:
 
     sleep_hours = st.slider(
-        "Sleep hours per day",
+        "Sleep Hours Per Day",
         0.0,
         12.0,
         6.0
     )
 
-    exercise_mins_per_day = st.number_input(
-        "Exercise minutes per day",
-        min_value=0,
-        max_value=300,
-        step=5
+    exercise_mins_per_week = st.number_input(
+        "Exercise Minutes Per Week",
+        0,
+        600
     )
-
-    exercise_mins_per_week = exercise_mins_per_day * 7
-
 
 with col2:
 
@@ -336,74 +302,29 @@ with col2:
         ["No", "Occasionally", "Regularly"]
     )
 
-# =====================================================
-# WORK PATTERN
-# =====================================================
+shift_pattern = st.selectbox(
+    "Shift Pattern",
+    ["Day", "Night", "Rotational"]
+)
 
-st.header("🕒 Work Pattern")
+working_hours_per_week = st.number_input(
+    "Working Hours Per Week",
+    10,
+    120
+)
 
-col1, col2 = st.columns(2)
-
-with col1:
-
-    shift_pattern = st.selectbox(
-        "Shift Pattern",
-        ["Day", "Night", "Rotational"]
-    )
-
-with col2:
-
-    working_hours_per_day = st.number_input(
-        "Working hours per day",
-        min_value=1,
-        max_value=24
-    )
-
-    working_hours_per_week = working_hours_per_day * 7
-
-
-# =====================================================
-# DIET SECTION
-# =====================================================
-
-st.header("🍽 Diet Pattern")
-
-col1, col2, col3 = st.columns(3)
-
-with col1:
-
-    have_breakfast = st.selectbox(
-        "Breakfast",
-        ["Yes", "No"]
-    )
-
-with col2:
-
-    have_lunch = st.selectbox(
-        "Lunch",
-        ["Yes", "No"]
-    )
-
-with col3:
-
-    have_dinner = st.selectbox(
-        "Dinner",
-        ["Yes", "No"]
-    )
-# =====================================================
+# ============================================================
 # STRESS ESTIMATION
-# =====================================================
+# ============================================================
 
-st.header("🧠 Stress Level Estimation")
+st.header("🧠 Stress Estimation")
 
-manual_stress = st.checkbox("Manually Enter Stress Level")
-
-stress_level = None
+manual_stress = st.checkbox("Enter Stress Level Manually")
 
 if manual_stress:
 
     stress_level = st.slider(
-        "Stress Level (1 = Very Low, 10 = Very High)",
+        "Stress Level",
         1,
         10,
         5
@@ -411,195 +332,198 @@ if manual_stress:
 
 else:
 
-    stress_calc = 4
-
-    if sleep_hours < 5:
-        stress_calc += 4
-    elif sleep_hours < 6:
-        stress_calc += 3
-    elif sleep_hours < 7:
-        stress_calc += 2
-
-    if working_hours_per_day > 12:
-        stress_calc += 3
-    elif working_hours_per_day > 10:
-        stress_calc += 2
-    elif working_hours_per_day > 8:
-        stress_calc += 1
-
-    if exercise_mins_per_day == 0:
-        stress_calc += 3
-    elif exercise_mins_per_day < 20:
-        stress_calc += 2
-
-    if bmi >= 30:
-        stress_calc += 2
-
-    if shift_pattern.lower() in ["night", "rotational"]:
-        stress_calc += 2
-
-    stress_level = int(np.clip(stress_calc, 1, 10))
+    stress_level = calculate_stress(
+        sleep_hours,
+        exercise_mins_per_week,
+        working_hours_per_week,
+        shift_pattern
+    )
 
 st.metric("Estimated Stress Level", stress_level)
 
+# ============================================================
+# DISEASE AND SUPPORT INFORMATION
+# ============================================================
 
-# =====================================================
-# PREPARE MODEL INPUT
-# =====================================================
+st.header("🩺 Medical & Support Information")
 
-st.header("📊 Health Risk Prediction")
+col1, col2, col3 = st.columns(3)
 
-input_data = pd.DataFrame({
+with col1:
 
-    "age": [age],
-    "gender": [gender],
-    "years_of_service": [years_of_service],
-    "post": [post],
-    "posted_city": [posted_city],
-    "bmi": [bmi],
-    "sleep_hours": [sleep_hours],
-    "exercise_mins_per_week": [exercise_mins_per_week],
-    "smoking": [smoking],
-    "alcohol": [alcohol],
-    "working_hours_per_week": [working_hours_per_week],
-    "shift_pattern": [shift_pattern],
-    "stress_level": [stress_level],
-    "systolic_bp": [systolic_bp],
-    "diastolic_bp": [diastolic_bp],
-    "cholesterol": [cholesterol],
-    "fasting_blood_sugar": [fasting_blood_sugar],
-    "heart_rate": [heart_rate],
-    "spo2": [spo2],
-    "breakfast": [have_breakfast],
-    "lunch": [have_lunch],
-    "dinner": [have_dinner]
-
-})
-
-
-# =====================================================
-# ENCODING
-# =====================================================
-
-categorical_cols = [
-    "gender",
-    "post",
-    "posted_city",
-    "smoking",
-    "alcohol",
-    "shift_pattern",
-    "breakfast",
-    "lunch",
-    "dinner"
-]
-
-try:
-
-    input_encoded = safe_transform(
-        ct_encoder,
-        input_data,
-        df,
-        categorical_cols
+    chronic_disease = st.selectbox(
+        "Chronic Disease",
+        df["chronic_disease"].unique()
     )
 
-except:
+with col2:
 
-    input_encoded = ct_encoder.transform(input_data)
+    healthcare_scheme = st.selectbox(
+        "Healthcare Scheme",
+        df["healthcare_scheme"].unique()
+    )
 
+with col3:
 
-# =====================================================
-# PREDICTION
-# =====================================================
+    technological_support = st.selectbox(
+        "Technological Support",
+        ["Low", "Medium", "High"]
+    )
+
+predictive_system_usage = st.selectbox(
+    "Use Predictive Monitoring System",
+    ["Yes", "No"]
+)
+
+# ============================================================
+# PREPARE MODEL INPUT
+# ============================================================
+
+st.header("📊 Health Risk Prediction")
 
 predict_button = st.button("🔍 Predict Health Risk")
 
 risk_score = None
 risk_category = None
-suggestion_list = []
+suggestions = []
 
 if predict_button:
 
+    # --------------------------------------------------------
+    # CREATE INPUT DATAFRAME
+    # --------------------------------------------------------
+
+    input_data = pd.DataFrame({
+
+        "personnel_id": [personnel_id],
+        "post": [post],
+        "posted_city": [posted_city],
+        "pollution_index": [pollution_index],
+        "city_workload_index": [city_workload_index],
+        "age": [age],
+        "gender": [gender],
+        "years_of_service": [years_of_service],
+        "height_cm": [height_cm],
+        "weight_kg": [weight_kg],
+        "bmi": [bmi],
+        "systolic_bp": [systolic_bp],
+        "diastolic_bp": [diastolic_bp],
+        "heart_rate": [heart_rate],
+        "spo2": [spo2],
+        "fasting_blood_sugar": [fasting_blood_sugar],
+        "cholesterol": [cholesterol],
+        "chronic_disease": [chronic_disease],
+        "sleep_hours": [sleep_hours],
+        "exercise_mins_per_week": [exercise_mins_per_week],
+        "smoking": [smoking],
+        "alcohol": [alcohol],
+        "stress_level": [stress_level],
+        "shift_pattern": [shift_pattern],
+        "working_hours_per_week": [working_hours_per_week],
+        "healthcare_scheme": [healthcare_scheme],
+        "technological_support": [technological_support],
+        "predictive_system_usage": [predictive_system_usage]
+
+    })
+
+    # --------------------------------------------------------
+    # FIX COLUMN MISMATCH WITH TRAINING DATASET
+    # --------------------------------------------------------
+
+    for col in df.columns:
+        if col not in input_data.columns:
+            input_data[col] = df[col].iloc[0]
+
+    input_data = input_data[df.columns]
+
+    # --------------------------------------------------------
+    # ENCODE INPUT
+    # --------------------------------------------------------
+
+    encoded_input = ct_encoder.transform(input_data)
+
+    # --------------------------------------------------------
+    # MODEL PREDICTION
+    # --------------------------------------------------------
+
     try:
 
-        model_prediction = float(
-            xgb_model.predict(input_encoded)[0]
-        )
+        prediction = xgb_model.predict(encoded_input)
+
+        risk_score = float(prediction[0])
 
     except:
 
-        model_prediction = 30
+        risk_score = 30
 
-    risk_score = model_prediction
-
-
-# =====================================================
-# RISK ADJUSTMENTS
-# =====================================================
+    # --------------------------------------------------------
+    # ADDITIONAL RISK ADJUSTMENTS
+    # --------------------------------------------------------
 
     if smoking == "Occasionally":
-        risk_score += 6
-    elif smoking == "Regularly":
-        risk_score += 12
+        risk_score += 5
+
+    if smoking == "Regularly":
+        risk_score += 10
 
     if alcohol == "Occasionally":
         risk_score += 4
-    elif alcohol == "Regularly":
+
+    if alcohol == "Regularly":
         risk_score += 8
 
     if sleep_hours < 5:
-        risk_score += 10
+        risk_score += 8
     elif sleep_hours < 6:
-        risk_score += 7
-    elif sleep_hours < 7:
-        risk_score += 4
-
-    if exercise_mins_per_day == 0:
-        risk_score += 10
-    elif exercise_mins_per_day < 20:
         risk_score += 5
 
-    if working_hours_per_day > 12:
-        risk_score += 10
-    elif working_hours_per_day > 10:
-        risk_score += 6
+    if exercise_mins_per_week == 0:
+        risk_score += 7
+    elif exercise_mins_per_week < 60:
+        risk_score += 4
 
     if bmi >= 30:
         risk_score += 8
     elif bmi >= 25:
         risk_score += 4
 
-    if systolic_bp >= 140 or diastolic_bp >= 90:
-        risk_score += 8
+    if systolic_bp >= 140:
+        risk_score += 6
+
+    if fasting_blood_sugar >= 126:
+        risk_score += 6
 
     if cholesterol >= 240:
-        risk_score += 7
-
-    if fasting_blood_sugar >= 125:
-        risk_score += 7
+        risk_score += 5
 
     if stress_level >= 7:
         risk_score += 6
 
     risk_score = max(0, min(100, risk_score))
 
-
-# =====================================================
+# ============================================================
 # RISK CATEGORY
-# =====================================================
+# ============================================================
 
     if risk_score < 35:
+
         risk_category = "🟢 Low Risk"
+
     elif risk_score < 60:
+
         risk_category = "🟡 Moderate Risk"
+
     elif risk_score < 80:
+
         risk_category = "🟠 High Risk"
+
     else:
+
         risk_category = "🔴 Critical Risk"
 
-
-# =====================================================
+# ============================================================
 # DISPLAY RESULTS
-# =====================================================
+# ============================================================
 
     st.subheader("📈 Prediction Result")
 
@@ -619,115 +543,93 @@ if predict_button:
             risk_category
         )
 
-
-# =====================================================
+# ============================================================
 # SUGGESTION ENGINE
-# =====================================================
+# ============================================================
 
     if risk_score >= 80:
-        suggestion_list.append(
-            "Critical risk detected — immediate medical consultation required."
+        suggestions.append(
+            "Critical health risk detected. Immediate medical consultation recommended."
         )
 
     elif risk_score >= 60:
-        suggestion_list.append(
-            "High risk — schedule medical check-up within 1 month."
+        suggestions.append(
+            "High health risk. Schedule medical examination within one month."
         )
 
     elif risk_score >= 35:
-        suggestion_list.append(
-            "Moderate risk — improve lifestyle and monitor health."
+        suggestions.append(
+            "Moderate risk detected. Lifestyle improvements recommended."
         )
 
     else:
-        suggestion_list.append(
-            "Risk within safe range — maintain current healthy lifestyle."
+        suggestions.append(
+            "Health risk within normal limits. Maintain current lifestyle."
         )
 
-
-    if systolic_bp >= 140 or diastolic_bp >= 90:
-        suggestion_list.append(
-            "High blood pressure detected — monitor BP regularly."
+    if systolic_bp >= 140:
+        suggestions.append(
+            "High blood pressure detected. Monitor BP regularly."
         )
 
-    if fasting_blood_sugar >= 125:
-        suggestion_list.append(
-            "High blood sugar — consider diabetes screening."
+    if fasting_blood_sugar >= 126:
+        suggestions.append(
+            "Elevated blood sugar level. Diabetes screening recommended."
         )
 
     if cholesterol >= 240:
-        suggestion_list.append(
-            "High cholesterol — reduce fatty food intake."
+        suggestions.append(
+            "High cholesterol level detected. Reduce fatty food intake."
         )
 
     if spo2 < 95:
-        suggestion_list.append(
-            "Low oxygen saturation — perform proper SpO₂ test."
+        suggestions.append(
+            "Low oxygen saturation detected. Consider medical evaluation."
         )
 
     if sleep_hours < 7:
-        suggestion_list.append(
-            "Sleep less than recommended — aim for 7–8 hours daily."
+        suggestions.append(
+            "Increase sleep duration to 7–8 hours per night."
         )
 
-    if exercise_mins_per_day < 30:
-        suggestion_list.append(
-            "Increase physical activity — minimum 30 minutes daily."
+    if exercise_mins_per_week < 150:
+        suggestions.append(
+            "Increase physical activity to at least 150 minutes per week."
         )
 
     if smoking != "No":
-        suggestion_list.append(
-            "Smoking increases cardiovascular risk — reduce or quit."
+        suggestions.append(
+            "Smoking significantly increases health risk. Consider quitting."
         )
 
     if alcohol != "No":
-        suggestion_list.append(
+        suggestions.append(
             "Limit alcohol consumption."
         )
 
-    if working_hours_per_day > 10:
-        suggestion_list.append(
-            "Long working hours may cause burnout — ensure rest breaks."
-        )
-
     if stress_level >= 7:
-        suggestion_list.append(
-            "High stress detected — consider meditation or counseling."
+        suggestions.append(
+            "High stress detected. Practice relaxation or meditation."
         )
 
-    if have_breakfast == "No":
-        suggestion_list.append(
-            "Skipping breakfast affects metabolism."
+    if working_hours_per_week > 60:
+        suggestions.append(
+            "Excessive working hours may cause burnout. Ensure proper rest."
         )
 
-    if have_lunch == "No":
-        suggestion_list.append(
-            "Skipping lunch may cause energy imbalance."
-        )
-
-    if have_dinner == "No":
-        suggestion_list.append(
-            "Avoid skipping dinner regularly."
-        )
-
-    suggestion_list.append(
-        "Maintain balanced diet, hydration, and regular health checkups."
-    )
-
-
-# =====================================================
+# ============================================================
 # DISPLAY SUGGESTIONS
-# =====================================================
+# ============================================================
 
     st.subheader("💡 Health Suggestions")
 
-    for s in suggestion_list:
+    for s in suggestions:
+
         st.write("•", s)
 
-
-# =====================================================
+# ============================================================
 # PDF REPORT GENERATION
-# =====================================================
+# ============================================================
 
     st.subheader("📄 Download Health Report")
 
@@ -735,78 +637,86 @@ if predict_button:
 
     styles = getSampleStyleSheet()
 
-    story = []
+    elements = []
 
-    story.append(Paragraph(
-        "Police Health Risk Report",
-        styles["Title"]
-    ))
+    elements.append(
+        Paragraph(
+            "Police Personnel Health Risk Report",
+            styles["Title"]
+        )
+    )
 
-    story.append(Spacer(1, 20))
+    elements.append(Spacer(1, 20))
 
-    story.append(Paragraph(
-        f"Personnel ID: {personnel_id}",
-        styles["Normal"]
-    ))
+    report_data = [
 
-    story.append(Paragraph(
-        f"Age: {age}",
-        styles["Normal"]
-    ))
+        ["Personnel ID", personnel_id],
+        ["Age", age],
+        ["Gender", gender],
+        ["Post", post],
+        ["Posted City", posted_city],
+        ["BMI", bmi],
+        ["Stress Level", stress_level],
+        ["Risk Score", round(risk_score, 2)],
+        ["Risk Category", risk_category]
 
-    story.append(Paragraph(
-        f"BMI: {bmi}",
-        styles["Normal"]
-    ))
+    ]
 
-    story.append(Paragraph(
-        f"Risk Score: {round(risk_score,2)}",
-        styles["Normal"]
-    ))
+    table = Table(report_data)
 
-    story.append(Paragraph(
-        f"Risk Category: {risk_category}",
-        styles["Normal"]
-    ))
+    table.setStyle([
 
-    story.append(Spacer(1, 20))
+        ("GRID", (0,0), (-1,-1), 1, colors.grey),
+        ("BACKGROUND", (0,0), (0,-1), colors.lightgrey)
 
-    story.append(Paragraph(
-        "Health Suggestions:",
-        styles["Heading2"]
-    ))
+    ])
 
-    for s in suggestion_list:
-        story.append(Paragraph(s, styles["Normal"]))
+    elements.append(table)
+
+    elements.append(Spacer(1, 20))
+
+    elements.append(
+        Paragraph(
+            "Health Recommendations",
+            styles["Heading2"]
+        )
+    )
+
+    for s in suggestions:
+
+        elements.append(
+            Paragraph(s, styles["Normal"])
+        )
 
     doc = SimpleDocTemplate(
         buffer,
         pagesize=A4
     )
 
-    doc.build(story)
+    doc.build(elements)
 
     pdf = buffer.getvalue()
+
     buffer.close()
 
     st.download_button(
         label="Download PDF Report",
         data=pdf,
-        file_name="health_report.pdf",
+        file_name="police_health_report.pdf",
         mime="application/pdf"
     )
 
-
-# =====================================================
+# ============================================================
 # FOOTER
-# =====================================================
+# ============================================================
 
 st.markdown("---")
 
 st.markdown(
 """
-Developed for **Police Personnel Health Monitoring System**
+**Predictive Healthcare Framework for Police Personnel**
 
-Predictive Healthcare Framework using Machine Learning.
+Machine Learning Based Health Risk Prediction System  
+Developed using **Streamlit, Python, XGBoost, and Data Analytics**
 """
 )
