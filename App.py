@@ -19,14 +19,83 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- STYLING ---
+# --- STYLING (SURVEY FORM DESIGN) ---
 st.markdown("""
 <style>
-body { background-color: #f8f9fa; color: #212529; font-family: "Segoe UI", sans-serif; }
-h1,h2,h3,h4 { color: #0a2647; }
-.stButton > button { background-color:#0a2647; color:#fff; border-radius:8px; padding:0.6em 1.2em; font-weight:600;}
-.stButton > button:hover { background-color:#144272; }
-div.stDownloadButton > button { background-color:#0a2647; color:#fff; border-radius:8px; padding:0.5em 1em; }
+
+/* MAIN BACKGROUND */
+.stApp {
+    background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+    font-family: 'Segoe UI', sans-serif;
+}
+
+/* FORM CONTAINER */
+.block-container {
+    background-color: white;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0px 6px 25px rgba(0,0,0,0.25);
+}
+
+/* HEADINGS */
+h1 {
+    color:#0a2647;
+    text-align:center;
+    font-weight:700;
+}
+
+h2,h3,h4{
+    color:#144272;
+    border-bottom:2px solid #e6e6e6;
+    padding-bottom:6px;
+    margin-top:25px;
+}
+
+/* INPUT BOX */
+input, textarea {
+    border-radius:8px !important;
+}
+
+/* SELECT BOX */
+div[data-baseweb="select"]{
+    border-radius:8px;
+}
+
+/* BUTTON */
+.stButton > button {
+    background: linear-gradient(45deg,#0a2647,#144272);
+    color:white;
+    border-radius:10px;
+    padding:10px 25px;
+    font-size:16px;
+    font-weight:600;
+    border:none;
+    transition:0.3s;
+}
+
+.stButton > button:hover {
+    background: linear-gradient(45deg,#144272,#205295);
+    transform:scale(1.05);
+}
+
+/* DOWNLOAD BUTTON */
+.stDownloadButton > button{
+    background:#205295;
+    color:white;
+    border-radius:10px;
+    padding:10px 20px;
+}
+
+/* RADIO BUTTON SPACING */
+div.row-widget.stRadio > div{
+    flex-direction:row;
+}
+
+/* PROGRESS BAR */
+.stProgress > div > div > div > div{
+    background-color:#205295;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
