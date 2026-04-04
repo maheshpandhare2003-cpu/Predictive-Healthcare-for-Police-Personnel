@@ -399,13 +399,65 @@ if st.button("Predict My Risk & Prepare Report"):
     categorical_cols = ['post','posted_city','gender','chronic_disease','smoking','alcohol',
                         'shift_pattern','healthcare_scheme','technological_support','predictive_system_usage']
 
+   # ---------------- ML PREDICTION ---------------- #
     input_encoded = safe_transform(ct_encoder, input_data, df, categorical_cols)
-    risk_score = float(xgb_model.predict(input_encoded)[0])
-
-    if smoking == "Occasionally": risk_score += 5
-    elif smoking == "Regularly": risk_score += 10
-    if alcohol == "Occasionally": risk_score += 3
-    elif alcohol == "Regularly": risk_score += 8
+    ml_score = float(xgb_model.predict(input_encoded)[0])
+    
+    # ---------------- USER-BASED ADJUSTMENTS ---------------- #
+    adjustment = 0
+    
+    # Lifestyle adjustments
+    if smoking == "Regularly":
+        adjustment += 10
+    elif smoking == "Occasionally":
+        adjustment += 5
+    
+    if alcohol == "Regularly":
+        adjustment += 8
+    elif alcohol == "Occasionally":
+        adjustment += 4
+    
+    # Sleep impact
+    if sleep_hours < 5:
+        adjustment += 10
+    elif sleep_hours < 7:
+        adjustment += 5
+    
+    # Exercise impact
+    if exercise_mins_per_week == 0:
+        adjustment += 8
+    elif exercise_mins_per_week < 60:
+        adjustment += 4
+    
+    # Stress impact
+    if stress_level >= 8:
+        adjustment += 10
+    elif stress_level >= 5:
+        adjustment += 5
+    
+    # Meal skipping impact
+    if have_breakfast == "No":
+        adjustment += 5
+    if have_lunch == "No":
+        adjustment += 5
+    if have_dinner == "No":
+        adjustment += 5
+    
+    # Medical indicators
+    if spo2 < 95:
+        adjustment += 6
+    if systolic_bp >= 140 or diastolic_bp >= 90:
+        adjustment += 8
+    if fasting_blood_sugar >= 125:
+        adjustment += 8
+    if cholesterol >= 240:
+        adjustment += 8
+    
+    # ---------------- FINAL SCORE ---------------- #
+    risk_score = ml_score + adjustment
+    
+    # Normalize
+    risk_score = max(0, min(risk_score, 100))
 
     risk_category = "✅ Normal" if risk_score < 40 else ("⚠ Borderline" if risk_score < 70 else "❌ High Risk")
 
