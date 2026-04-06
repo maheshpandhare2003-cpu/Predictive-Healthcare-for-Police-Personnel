@@ -151,33 +151,35 @@ st.text_input("BMI", value=bmi, disabled=True)
 
 st.header("🩺 Police personnel Scheme Policy ")
 
-healthcare_scheme = st.multiselect(
-    "Select schemes:",
-    [
-        "MPKAY",
-        "MJPJAY",
-        "ESIC",
-        "MPFHS",
-        "CGHS",
-        "State Government Medical Reimbursement Scheme",
-        "Cashless Treatment GR for Govt Employee",
-        "None",
-        "Other"
-    ]
-)
+# healthcare_scheme = st.multiselect(
+#     "Select schemes:",
+#     [
+#         "MPKAY",
+#         "MJPJAY",
+#         "ESIC",
+#         "MPFHS",
+#         "CGHS",
+#         "State Government Medical Reimbursement Scheme",
+#         "Cashless Treatment GR for Govt Employee",
+#         "None",
+#         "Other"
+#     ]
+# )
 
-# Show text box if "Other" is selected
-other_scheme = ""
-if "Other" in healthcare_scheme:
-    other_scheme = st.text_input("Enter Other Scheme")
+# # Show text box if "Other" is selected
+# other_scheme = ""
+# if "Other" in healthcare_scheme:
+#     other_scheme = st.text_input("Enter Other Scheme")
 
-# Remove "Other" from list and add custom value
-health_list = [x for x in healthcare_scheme if x != "Other"]
+# # Remove "Other" from list and add custom value
+# health_list = [x for x in healthcare_scheme if x != "Other"]
 
-if other_scheme:
-    health_list.append(other_scheme)
+# if other_scheme:
+#     health_list.append(other_scheme)
 
-current_health_details = ", ".join(health_list) if health_list else "None"
+# current_health_details = ", ".join(health_list) if health_list else "None"
+
+healthcare_scheme = st.selectbox("Healthcare Scheme Used", df['healthcare_scheme'].unique() if 'healthcare_scheme' in df.columns else ["Unknown"])
 
 # --------------------------------------------------------------------------
 # --- VITAL SIGNS ---
