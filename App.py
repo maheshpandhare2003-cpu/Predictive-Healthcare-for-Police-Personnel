@@ -179,7 +179,9 @@ st.header("🩺 Police personnel Scheme Policy ")
 
 # current_health_details = ", ".join(health_list) if health_list else "None"
 
-healthcare_scheme = st.selectbox("Healthcare Scheme Used", df['healthcare_scheme'].unique() if 'healthcare_scheme' in df.columns else ["Unknown"])
+# healthcare_scheme = st.selectbox("Healthcare Scheme Used", df['healthcare_scheme'].unique() if 'healthcare_scheme' in df.columns else ["Unknown"])
+
+healthcare_scheme = st.selectbox("Healthcare Scheme Used", df['healthcare_scheme'].unique())
 
 # --------------------------------------------------------------------------
 # --- VITAL SIGNS ---
@@ -447,7 +449,7 @@ if st.button("Predict My Risk & Prepare Report"):
         ["Pollution Index", f"{pollution_index:.2f}"],
         ["City Workload Index", f"{city_workload_index:.2f}"],
         ["BMI", bmi],
-        ["Health / Schemes Used", current_health_details]
+        ["Health / Schemes Used", healthcare_scheme]
     ]
 
     elements.append(Paragraph("Personnel & Demographics", styles['Heading2']))
