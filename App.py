@@ -548,16 +548,7 @@ if st.button("Predict My Risk & Prepare Report"):
         suggestion_list.append("You are skipping dinner — avoid long fasting gaps.")
 
     suggestion_list.append("Maintain balanced diet, regular exercise, and 7–8 hours sleep.")
-# Alcohol warning logic
-    if alcohol == "Regularly":
-     suggestion_list.append("Regular alcohol consumption detected — reduce intake to safe limits.")
-    elif alcohol == "Occasionally":
-     suggestion_list.append("Occasional alcohol consumption — keep it within safe limits.")
-    # Smoking warning logic
-    if smoking == "Regularly":
-     suggestion_list.append("Regular smoking detected — high health risk, consider quitting.")
-    elif smoking == "Occasionally":
-     suggestion_list.append("Occasional smoking — reducing frequency is recommended.")
+    suggestion_list.append("Limit alcohol and stay hydrated.")
     suggestion_list.append("Use department health schemes and digital tools regularly.")
 
     elements.append(Paragraph("Risk Prediction & Suggestions", styles['Heading2']))
