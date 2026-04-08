@@ -118,13 +118,29 @@ st.header("👤 Demographics Information")
 col1, col2, col3 = st.columns(3)
 with col1:
     personnel_id = st.text_input("Personnel ID : ")
-    dob = st.date_input("Enter Date of Birth")
-    # Calculate age from DOB
+    dob = st.date_input(
+    "Enter Date of Birth",
+    min_value=datetime.date(1950, 1, 1),
+    max_value=datetime.date.today() - datetime.timedelta(days=18*365)
+    )
     today = datetime.date.today()
     age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+    st.text_input("Calculated Age (Years)", value=age, disabled=True)
+    if age < 18:
+      st.error("❌ Minimum age to join police service is 18 years.")
+
     gender = st.radio("Gender", ["Male", "Female", "Other"])
 with col2:
     years_of_service = st.number_input("Years of Service", min_value=0, step=1)
+    # Validate service vs age
+    if years_of_service > 0:
+       minimum_possible_age = 18 + years_of_service
+
+       if age < minimum_possible_age:
+          st.error(
+             f"❌ Invalid data: With {years_of_service} years of service, "
+             f"minimum possible age should be {minimum_possible_age} years."
+          )
 
     post_options = list(df['post'].unique())
     post_options.append("Other")
