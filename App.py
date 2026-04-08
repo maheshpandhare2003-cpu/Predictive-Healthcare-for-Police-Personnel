@@ -118,7 +118,10 @@ st.header("👤 Demographics Information")
 col1, col2, col3 = st.columns(3)
 with col1:
     personnel_id = st.text_input("Personnel ID : ")
-    age = st.number_input("Age (years)", min_value=18, max_value=100)
+    dob = st.date_input("Enter Date of Birth")
+    # Calculate age from DOB
+    today = datetime.date.today()
+    age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
     gender = st.radio("Gender", ["Male", "Female", "Other"])
 with col2:
     years_of_service = st.number_input("Years of Service", min_value=0, step=1)
@@ -145,8 +148,25 @@ with col3:
     height_cm = st.number_input("Height (cm)", min_value=120, max_value=250)
     weight_kg = st.number_input("Weight (kg)", min_value=30, max_value=200)
 
+# Calculate BMI
 bmi = round(weight_kg / ((height_cm / 100) ** 2), 1) if height_cm > 0 else 0.0
+
+# Show BMI (readonly)
 st.text_input("BMI", value=bmi, disabled=True)
+
+# --- STRICT POLICE CRITERIA ---
+
+# Height Check (General Police Standard)
+if height_cm < 165:
+    st.error("❌ Height below minimum police requirement (165 cm)")
+
+# BMI Check (Fit Range)
+if bmi < 18.5 or bmi > 27:
+    st.error("❌ BMI not in ideal police fitness range (18.5 - 27)")
+
+# Optional: Fit Status
+if height_cm >= 165 and 18.5 <= bmi <= 27:
+    st.success("✅ You meet basic police physical criteria")
 
 
 st.header("🩺 Police personnel Scheme Policy ")
