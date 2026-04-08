@@ -473,9 +473,9 @@ if st.button("Predict My Risk & Prepare Report"):
      ]
     })
 
-st.bar_chart(
-    health_chart_data.set_index("Health Parameter")
-)
+    st.bar_chart(
+     health_chart_data.set_index("Health Parameter")
+    ) 
 
     # ----------------------------------------------------------------------
     # PDF START
