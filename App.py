@@ -450,7 +450,32 @@ if st.button("Predict My Risk & Prepare Report"):
 
     st.subheader("📊 Risk Result")
     st.write(f"**Risk Score:** {risk_score:.1f}")
-    st.write(f"**Risk Category:** {risk_category}")
+    st.subheader("📊 Health Parameter Overview")
+
+    health_chart_data = pd.DataFrame({
+      "Health Parameter": [
+        "Systolic BP",
+        "Diastolic BP",
+        "Heart Rate",
+        "Cholesterol",
+        "Blood Sugar",
+        "SpO₂",
+        "BMI"
+     ],
+      "Value": [
+        systolic_bp,
+        diastolic_bp,
+        heart_rate,
+        cholesterol,
+        fasting_blood_sugar,
+        spo2,
+        bmi
+     ]
+    })
+
+st.bar_chart(
+    health_chart_data.set_index("Health Parameter")
+)
 
     # ----------------------------------------------------------------------
     # PDF START
